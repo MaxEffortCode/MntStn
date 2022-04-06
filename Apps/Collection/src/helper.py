@@ -4,11 +4,10 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 
 from IPython.display import display
-
 from bs4 import BeautifulSoup
 from Settings.setup_logger import logging
+from pathlib import Path
 
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +91,7 @@ class helper:
                 for child in root:
                     self.process_13f_hr_subtree(child, out_file)
 
-    def process_10k(filingFile, secApi):
+    def process_10k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             if file['name'] == 'FilingSummary.xml':
                 xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
@@ -104,7 +103,6 @@ class helper:
                 reports = soup.find('myreports')
                 master_reports = []
 
-                # loop through each report in the 'myreports' tag but avoid the last one as this will cause an error.
                 for report in reports.find_all('report')[:-1]:
                     report_dict = {}
                     report_dict['name_short'] = report.shortname.text
@@ -125,9 +123,6 @@ class helper:
                     report_list = [item1, item2, item3, item4, item5, item6]
 
                     if report_dict['name_short'] in report_list:
-                        print('-'*100)
-                        print(report_dict['name_short'])
-                        print(report_dict['url'])
                         statements_url.append(report_dict['url'])
 
                 statements_data = []
@@ -161,7 +156,6 @@ class helper:
             
                     statements_data.append(statement_data)
 
-
                 allHeaders = [obj['headers'] for obj in statements_data]
                 allData = [obj['data'] for obj in statements_data]
 
@@ -176,17 +170,9 @@ class helper:
 
                 headersOfFinancialStatementsColumnLengths = []
                 for index, headers in enumerate(headersOfFinancialStatements):
-                    print(index, headers)
                     headersOfFinancialStatementsColumnLengths.append(len(headers))
-
-
-                print("================== headersOfFinancialStatementsColumnLengths ===================== ")
-                print((headersOfFinancialStatementsColumnLengths))
-
                 dataOfFinancialStatements = []
-                #for headerOfFinancialStatementColumnLength in headersOfFinancialStatementsColumnLengths:
-                    #print("================== headerOfFinancialStatementColumnLength ===================== ")
-                    #print(headerOfFinancialStatementColumnLength)
+
                 for dataNestedList in allData:
                     properData = []
                     for data in dataNestedList:
@@ -195,49 +181,18 @@ class helper:
                         else:
                             properData.append(data)
                     dataOfFinancialStatements.append(properData)
-
-                #print("================== dataOfFinancialStatements ===================== ")
-                #print((dataOfFinancialStatements))
-
-                #print("================== dataOfFinancialStatements SIZE ===================== ")
-                #print(len(dataOfFinancialStatements))
-
-                #for test in dataOfFinancialStatements:
-                #    print("\n==================TEST==============")
-                #    print(test)
-
-                # Put the data in a DataFrame
                 
                 for index, financialStatement in enumerate(dataOfFinancialStatements):
                     dataFrame = pd.DataFrame(financialStatement)
 
-                    #print("================== dataFrame ===================== ")
-                    #print(" ")
-                    #print((dataFrame))
-
-                    print("================== headersOfFinancialStatements[index][index] ===================== ")
-                    print(headersOfFinancialStatements[index][index])
-
-                    #Display
-                    #print('-'*100)
-                    #print('Before Reindexing')
-                    #print('-'*100)
-                    #print(f"{dataFrame.head()}")
-
-                    # Define the Index column, rename it, and we need to make sure to drop the old column once we reindex.
+                    # Define the Index column, rename it, drop the old column after reindexing
                     dataFrame.index = dataFrame[0]
-                    dataFrame.index.name = "Category"
+                    dataFrame.index.name = headersOfFinancialStatements[index][0]
                     dataFrame = dataFrame.drop(0, axis = 1)
-
-                    # Display
-                    #print('-'*100)
-                    #print('Before Regex')
-                    #print('-'*100)
-                    #print(f"{dataFrame.head()}")
 
                     dataFrame = dataFrame.replace('[\$,)]','', regex=True )
                     dataFrame = dataFrame.replace('[(]','-', regex=True)
-                    # income_df = income_df.replace('[]0-9[]', '', regex=True)
+                    #income_df = income_df.replace('[]0-9[]', '', regex=True)
                     dataFrame = dataFrame.replace('', 'NaN', regex=True)
                     dataFrame = dataFrame.replace('[1]', 'NaN', regex=False)
                     dataFrame = dataFrame.replace('[2]', 'NaN', regex=False)
@@ -248,56 +203,28 @@ class helper:
                     dataFrame = dataFrame.replace('[7]', 'NaN', regex=False)
                     dataFrame = dataFrame.replace('[8]', 'NaN', regex=False)
                     dataFrame = dataFrame.replace('[9]', 'NaN', regex=False)
-                    
-                    # Display
-                    #print('-'*100)
-                    #print('Before type conversion')
-                    #print('-'*100)
-                    #print(f"{dataFrame.head()}")
 
 
                     dataFrame = dataFrame.loc[:, ~dataFrame.apply(lambda x: x.nunique() == 1 and x[0]=='NaN', axis=0)]
-                    print(" ================== testyyy ===================== ")
-                    print(dataFrame)
-
-                    # everything is a string, so let's convert all the data to a float.
                     dataFrame = dataFrame.astype(float)
 
-                    #print("")
-                    #print(" ================== dataFrame after converting to float ===================== ")
-                    #print("")
-                    #print(dataFrame)
+                    keyList = dataFrame.columns.values.tolist()
+                    dict = {}
+                    for i, key in enumerate(keyList):
+                        dict[key] = headersOfFinancialStatements[index][i + 1]
 
-                    #print("")
-                    print(" ================== header ===================== ")
-                    #print("")
-                    print(headersOfFinancialStatements[index])
+                    dataFrame.rename(columns=dict, inplace=True)
 
-                    #print("")
-                    #print(" ================== dataFrame.columns ===================== ")
-                    #print("")
-                    #print(dataFrame.columns)
-                    
-                    # Change the column headers
-                    #dataFrame.columns = header
+                    reportListName = headersOfFinancialStatements[index][0].strip()
+                    reportListName = reportListName.replace(' ', '')
 
-                    # Display
-                    #print('-'*100)
-                    print('Final Product')
-                    #print('-'*100)
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/10-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                    p = Path(path)
+                    p.mkdir(parents=True,exist_ok=True)
 
-                    # show the dataframe
-                    display(dataFrame)
-
-                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv')
-
-                    print('=====================sys path ===================')
-                    print(sys.path)
-
-                    #dataFrame = dataFrame.index.names(headersOfFinancialStatements[index])
-
-                    # drop the data in a CSV file if need be.
-                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv', index=True)
+                    newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/10-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{reportListName}.csv"
+                    newP = Path(newPath)
+                    dataFrame.to_csv(newP, index = True, header = True)
 
 
                 

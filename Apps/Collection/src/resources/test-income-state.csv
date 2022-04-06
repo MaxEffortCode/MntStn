@@ -1,40 +1,37 @@
-Category,"Dec. 31, 2021","Dec. 31, 2020","Dec. 31, 2019"
-Interest and fees on loans,157990.0,143701.0,130167.0
-Interest and dividends on investment securities,976.0,1208.0,2225.0
-Medallion lease income,0.0,53.0,170.0
-Total interest income /total investment income,158966.0,144962.0,132562.0
-Interest on deposits,17543.0,22330.0,22521.0
-Interest on short-term borrowings,690.0,2006.0,3242.0
-Interest on long-term debt,12907.0,9815.0,9282.0
-Total interest expense,31140.0,34151.0,35045.0
-Net interest income (loss),127826.0,110811.0,97517.0
-Provision for loan losses,4622.0,69817.0,47386.0
-Net interest income (loss) after provision (benefit) for loan losses,123204.0,40994.0,50131.0
-"Sponsorship and race winnings, net",12567.0,20042.0,18742.0
-Gain (loss) on equity investments,17379.0,-2985.0,0.0
-Writedown of loan collateral in process of foreclosure,-5592.0,-24523.0,4381.0
-Gain on extinguishment of debt,4626.0,,4145.0
-Other income,2586.0,1530.0,1881.0
-"Total other income (loss), net",31566.0,-5936.0,20387.0
-Salaries and employee benefits,31591.0,28172.0,24971.0
-Race team related expenses,9559.0,8366.0,8996.0
-Loan servicing fees,7013.0,6737.0,5253.0
-Professional fees,5311.0,8047.0,7402.0
-Collection costs,5279.0,5454.0,6638.0
-Rent expense,2454.0,2833.0,2419.0
-Regulatory fees,1872.0,1822.0,1722.0
-Amortization of intangible assets,1445.0,1445.0,1446.0
-"Travel, meals, and entertainment",634.0,375.0,1138.0
-Other expenses,7741.0,8788.0,8196.0
-Total other expenses,72899.0,72039.0,68181.0
-Income (loss) before income taxes,81871.0,-36981.0,2337.0
-Income tax (provision) benefit,-24217.0,10074.0,-341.0
-Net income (loss) after taxes,57654.0,-26907.0,1996.0
-Net income (loss) after taxes/net increase (decrease) on net assets resulting from operations,57654.0,-26907.0,1996.0
-Less: income attributable to the non-controlling interest,3546.0,7876.0,3758.0
-Total net income (loss) attributable to Medallion Financial Corp.,54108.0,-34783.0,-1762.0
-Basic net income (loss) per share,2.2,-1.42,-0.07
-Diluted net income loss per share,2.17,-1.42,-0.07
-Distributions declared per share,0.0,0.0,0.0
-Basic,24599804.0,24445452.0,24342979.0
-Diluted,24943169.0,24445452.0,24342979.0
+Category,2,3
+Cash and cash equivalents,64482.0,54743.0
+Federal funds sold,60002.0,57297.0
+Investment securities,44772.0,46792.0
+Equity investments,9726.0,9746.0
+Loans,1488924.0,1229838.0
+Allowance for loan losses,-50166.0,-57548.0
+Net loans receivable,1438758.0,1172290.0
+Goodwill,150803.0,150803.0
+Loan collateral in process of foreclosure,37430.0,54560.0
+"Intangible assets, net",23480.0,51090.0
+"Property, equipment, and right-of-use lease asset, net",11762.0,12404.0
+Accrued interest receivable,10621.0,10338.0
+Income tax receivable,833.0,1757.0
+Other assets,20388.0,20591.0
+Total assets,1873057.0,1642411.0
+Deposits,1250880.0,1065398.0
+Long-term Debt,219973.0,153718.0
+"Deferred tax liabilities, net",18210.0,807.0
+Operating lease liabilities,9053.0,11018.0
+Accrued interest payable,3395.0,4673.0
+Short-term borrowings,0.0,87334.0
+Accounts payable and accrued expenses,15718.0,14902.0
+Total liabilities,1517229.0,1337850.0
+Commitments and contingencies,,
+"Preferred stock (1,000,000 shares of $0.01 par value stock authorized-none outstanding)",0.0,0.0
+"Common stock (50,000,000 shares of $0.01 par value stock authorized- XX shares at December 31, 2021 and 27,828,871 shares at December 31, 2020 issued)",281.0,278.0
+Additional paid in capital,280038.0,277539.0
+"Treasury stock (2,951,243 shares at December 31, 2021 and December 31, 2020)",-24919.0,-24919.0
+Accumulated other comprehensive income (loss),1034.0,2012.0
+Retained earnings (accumulated deficit),30606.0,-23502.0
+Total stockholders’ equity,287040.0,231408.0
+Non-controlling interest in consolidated subsidiaries,68788.0,73153.0
+Total equity,355828.0,304561.0
+Total liabilities and equity,1873057.0,1642411.0
+Number of shares outstanding,25173386.0,24877628.0
+Book value per share,11.4,9.3

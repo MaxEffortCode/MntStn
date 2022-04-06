@@ -8,6 +8,8 @@ from IPython.display import display
 from bs4 import BeautifulSoup
 from Settings.setup_logger import logging
 
+import sys
+
 logger = logging.getLogger(__name__)
 
 class helper:
@@ -178,102 +180,124 @@ class helper:
                     headersOfFinancialStatementsColumnLengths.append(len(headers))
 
 
-                dataOfFinancialStatements = []
-                for headerOfFinancialStatementColumnLength in headersOfFinancialStatementsColumnLengths:
-                    for dataNestedList in allData:
-                        properData = []
-                        for data in dataNestedList:
-                            if len(data) < headerOfFinancialStatementColumnLength:
-                                break
-                            else:
-                                properData.append(data)
-                        dataOfFinancialStatements.append(properData)
+                print("================== headersOfFinancialStatementsColumnLengths ===================== ")
+                print((headersOfFinancialStatementsColumnLengths))
 
-                print("================== dataOfFinancialStatements ===================== ")
-                print((dataOfFinancialStatements))
+                dataOfFinancialStatements = []
+                #for headerOfFinancialStatementColumnLength in headersOfFinancialStatementsColumnLengths:
+                    #print("================== headerOfFinancialStatementColumnLength ===================== ")
+                    #print(headerOfFinancialStatementColumnLength)
+                for dataNestedList in allData:
+                    properData = []
+                    for data in dataNestedList:
+                        if len(data) < len(headersOfFinancialStatementsColumnLengths):
+                            break
+                        else:
+                            properData.append(data)
+                    dataOfFinancialStatements.append(properData)
+
+                #print("================== dataOfFinancialStatements ===================== ")
+                #print((dataOfFinancialStatements))
+
+                #print("================== dataOfFinancialStatements SIZE ===================== ")
+                #print(len(dataOfFinancialStatements))
+
+                #for test in dataOfFinancialStatements:
+                #    print("\n==================TEST==============")
+                #    print(test)
 
                 # Put the data in a DataFrame
-                for header in headersOfFinancialStatements:
-                    for financialStatement in dataOfFinancialStatements:
-                        dataFrame = pd.DataFrame(financialStatement)
+                
+                for index, financialStatement in enumerate(dataOfFinancialStatements):
+                    dataFrame = pd.DataFrame(financialStatement)
 
-                        print("================== dataFrame ===================== ")
-                        print(" ")
-                        print((dataFrame))
+                    #print("================== dataFrame ===================== ")
+                    #print(" ")
+                    #print((dataFrame))
 
-                        #Display
-                        print('-'*100)
-                        print('Before Reindexing')
-                        print('-'*100)
-                        print(f"{dataFrame.head()}")
+                    print("================== headersOfFinancialStatements[index][index] ===================== ")
+                    print(headersOfFinancialStatements[index][index])
 
-                        # Define the Index column, rename it, and we need to make sure to drop the old column once we reindex.
-                        dataFrame.index = dataFrame[0]
-                        dataFrame.index.name = 'Category'
-                        dataFrame = dataFrame.drop(0, axis = 1)
+                    #Display
+                    #print('-'*100)
+                    #print('Before Reindexing')
+                    #print('-'*100)
+                    #print(f"{dataFrame.head()}")
 
-                        # Display
-                        print('-'*100)
-                        print('Before Regex')
-                        print('-'*100)
-                        print(f"{dataFrame.head()}")
+                    # Define the Index column, rename it, and we need to make sure to drop the old column once we reindex.
+                    dataFrame.index = dataFrame[0]
+                    dataFrame.index.name = "Category"
+                    dataFrame = dataFrame.drop(0, axis = 1)
 
-                        dataFrame = dataFrame.replace('[\$,)]','', regex=True )
-                        dataFrame = dataFrame.replace('[(]','-', regex=True)
-                        # income_df = income_df.replace('[]0-9[]', '', regex=True)
-                        dataFrame = dataFrame.replace('', 'NaN', regex=True)
-                        dataFrame = dataFrame.replace('[1]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[2]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[3]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[4]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[5]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[6]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[7]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[8]', 'NaN', regex=False)
-                        dataFrame = dataFrame.replace('[9]', 'NaN', regex=False)
-                        
-                        # Display
-                        print('-'*100)
-                        print('Before type conversion')
-                        print('-'*100)
-                        print(f"{dataFrame.head()}")
+                    # Display
+                    #print('-'*100)
+                    #print('Before Regex')
+                    #print('-'*100)
+                    #print(f"{dataFrame.head()}")
+
+                    dataFrame = dataFrame.replace('[\$,)]','', regex=True )
+                    dataFrame = dataFrame.replace('[(]','-', regex=True)
+                    # income_df = income_df.replace('[]0-9[]', '', regex=True)
+                    dataFrame = dataFrame.replace('', 'NaN', regex=True)
+                    dataFrame = dataFrame.replace('[1]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[2]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[3]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[4]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[5]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[6]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[7]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[8]', 'NaN', regex=False)
+                    dataFrame = dataFrame.replace('[9]', 'NaN', regex=False)
+                    
+                    # Display
+                    #print('-'*100)
+                    #print('Before type conversion')
+                    #print('-'*100)
+                    #print(f"{dataFrame.head()}")
 
 
-                        dataFrame = dataFrame.loc[:, ~dataFrame.apply(lambda x: x.nunique() == 1 and x[0]=='NaN', axis=0)]
-                        print(" ================== testyyy ===================== ")
-                        print(dataFrame)
+                    dataFrame = dataFrame.loc[:, ~dataFrame.apply(lambda x: x.nunique() == 1 and x[0]=='NaN', axis=0)]
+                    print(" ================== testyyy ===================== ")
+                    print(dataFrame)
 
-                        # everything is a string, so let's convert all the data to a float.
-                        dataFrame = dataFrame.astype(float)
+                    # everything is a string, so let's convert all the data to a float.
+                    dataFrame = dataFrame.astype(float)
 
-                        print("")
-                        print(" ================== dataFrame ===================== ")
-                        print("")
-                        print(dataFrame)
+                    #print("")
+                    #print(" ================== dataFrame after converting to float ===================== ")
+                    #print("")
+                    #print(dataFrame)
 
-                        print("")
-                        print(" ================== header ===================== ")
-                        print("")
-                        print(header)
+                    #print("")
+                    print(" ================== header ===================== ")
+                    #print("")
+                    print(headersOfFinancialStatements[index])
 
-                        print("")
-                        print(" ================== dataFrame.columns ===================== ")
-                        print("")
-                        print(dataFrame.columns)
-                        
-                        # Change the column headers
-                        dataFrame.columns = header
+                    #print("")
+                    #print(" ================== dataFrame.columns ===================== ")
+                    #print("")
+                    #print(dataFrame.columns)
+                    
+                    # Change the column headers
+                    #dataFrame.columns = header
 
-                        # Display
-                        print('-'*100)
-                        print('Final Product')
-                        print('-'*100)
+                    # Display
+                    #print('-'*100)
+                    print('Final Product')
+                    #print('-'*100)
 
-                        # show the dataframe
-                        display(dataFrame)
+                    # show the dataframe
+                    display(dataFrame)
 
-                        # drop the data in a CSV file if need be.
-                        dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv')
+                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv')
+
+                    print('=====================sys path ===================')
+                    print(sys.path)
+
+                    dataFrame = dataFrame.index.names(headersOfFinancialStatements[index])
+
+                    # drop the data in a CSV file if need be.
+                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv')
 
 
                 

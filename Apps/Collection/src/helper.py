@@ -294,10 +294,10 @@ class helper:
                     print('=====================sys path ===================')
                     print(sys.path)
 
-                    dataFrame = dataFrame.index.names(headersOfFinancialStatements[index])
+                    #dataFrame = dataFrame.index.names(headersOfFinancialStatements[index])
 
                     # drop the data in a CSV file if need be.
-                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv')
+                    dataFrame.to_csv('Apps/Collection/src/resources/test-income-state.csv', index=True)
 
 
                 

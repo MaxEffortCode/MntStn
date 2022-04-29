@@ -19,6 +19,7 @@ fileCounter13fhr = 0
 fileCounter10q = 0
 fileCounter10k = 0
 fileCounter8k = 0
+fileCounter11k = 0
 
 
 logger.info(f"{edgarIndexFilePath}")
@@ -33,7 +34,7 @@ with open(edgarIndexFilePath) as file:
         companyFiling = splitLineCompanyInfo[2]
 
         if(companyFiling == "13F-HR"):
-            #continue
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR for : {companyName}\n")
@@ -44,7 +45,7 @@ with open(edgarIndexFilePath) as file:
 
 
         elif(companyFiling == "10-K"):
-            #continue
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10k += 1
             logger.info(f"Processing 10-K for : {companyName}\n")
@@ -54,7 +55,7 @@ with open(edgarIndexFilePath) as file:
             helper.process_10k(filingFile, sec_Api, companyInfoTuple)
         
         elif(companyFiling == "10-Q"):
-            #continue
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter10q += 1
             logger.info(f"Processing 10Q for : {companyName}\n")
@@ -64,7 +65,7 @@ with open(edgarIndexFilePath) as file:
             helper.process_10q(filingFile, sec_Api, companyInfoTuple)
         
         elif(companyFiling == "8-K"):
-            #continue
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter13fhr += 1
             logger.info(f"Processing 8-K for : {companyName}\n")
@@ -75,7 +76,17 @@ with open(edgarIndexFilePath) as file:
             time.sleep(1/10)
             helper.process_8k(filingFile, sec_Api, companyInfoTuple)
             fileCounter8k+=1
-
+        
+        elif(companyFiling == "11-K"):
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter13fhr += 1
+            logger.info(f"Processing 11-K for : {companyName}\n")
+            filingFile = sec_Api.get8KFilingForCompanyApi(splitLineCompanyInfo)
+            print(f"filing file: {filingFile}")
+            #time.sleep(3)
+            helper.process_11k(filingFile, sec_Api, companyInfoTuple)
+            fileCounter11k+=1
+            pass
 
 
 logger.info("Processed " + str(fileCounter13fhr) + " 13F-HR files in master file.")

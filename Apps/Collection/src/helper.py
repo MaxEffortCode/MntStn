@@ -1,5 +1,6 @@
 import csv
 from distutils.log import debug
+from fileinput import filename
 import re
 import os
 import time
@@ -8,7 +9,7 @@ import pandas as pd
 import weasyprint
 
 from IPython.display import display
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Doctype
 from Settings.setup_logger import logging
 from pathlib import Path 
 
@@ -405,7 +406,6 @@ class helper:
             
             content = secApi.get(main_url).content
             soup = BeautifulSoup(content, 'xml')
-            
 
             pdf = weasyprint.HTML(main_url).write_pdf()
             
@@ -429,3 +429,40 @@ class helper:
             except:
                 logger.error(f"http 404 not found \n")
                 time.sleep(1)
+        
+        return
+    
+    def process_11k(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            #file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
+            name = file['name']
+            print(f"name = {name}")
+            
+            if "11-k" not in name and "11k" not in name:
+                continue
+            
+            end_bit_of_url = name
+            xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+            logger.info(f"Searching through: {xmlSummary}")
+            base_url = xmlSummary.replace(name, '')
+            content = secApi.get(xmlSummary).content
+            
+            #print(content)
+            soup = BeautifulSoup(content, 'lxml')
+            print(f"\n\n\nsoup \n\n {soup.find_all('a')}")
+            for table_row in soup.find_all('table'):
+                print(f"tabel row \n {table_row.text}\n\n")
+                    
+                
+            
+            
+            
+            main_url = base_url + end_bit_of_url
+            logger.info(f"Preforming GET on {main_url}")
+            
+            content = secApi.get(main_url).content
+            soup = BeautifulSoup(content, 'xml')
+            
+            time.sleep(10)
+
+        pass

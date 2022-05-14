@@ -7,12 +7,12 @@ import time
 import xml.etree.ElementTree as ET
 import pandas as pd
 import weasyprint
+from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 
 from IPython.display import display
 from bs4 import BeautifulSoup, Doctype
 from Settings.setup_logger import logging
 from pathlib import Path 
-
 
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,9 @@ class helper:
 
         return edgarIndexFileDownloadPath
 
+    def find_tables(pdf, out_file = None):
+        pass
+    
     def process_13f_hr_subtree(self, subtree, writer):
         nameOfIssuer = ''
         cusip = ''
@@ -387,12 +390,25 @@ class helper:
                     dataFrame.to_csv(f"{path}/{reportListName}.csv", index = True, header = True)
 
     def process_8k(filingFile, secApi, companyInfoTuple):
+        header = {'Host': 'www.sec.gov', 'Connection': 'close',
+         'Accept': 'application/json, text/javascript, */*; q=0.01', 'X-Requested-With': 'XMLHttpRequest',
+         'User-Agent': ' Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0',
+         }
+
         for file in filingFile.json()['directory']['item']:
             #file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
             name = file['name']
+            if ".htm" in name and ".html" not in name:
+                htm = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                end_bit_of_url = "8-k-filing.html"
+                print(f"htm = {htm}")
+                request_content = secApi.get(htm)
+                read_html_pandas(request_content)
+
             if(name != 'FilingSummary.xml'):
                 continue
-
+            continue
             xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
             logger.info(f"Searching through: {xmlSummary}")
             base_url = xmlSummary.replace('FilingSummary.xml', '')
@@ -450,19 +466,15 @@ class helper:
             #print(content)
             soup = BeautifulSoup(content, 'lxml')
             print(f"\n\n\nsoup \n\n {soup.find_all('a')}")
-            for table_row in soup.find_all('table'):
-                print(f"tabel row \n {table_row.text}\n\n")
+            for table in soup.find_all('table'):
+                for table_row in table:
+                    print(f"\ntable row \n {table_row.text}\n")
                     
-                
+
+            # main_url = base_url + end_bit_of_url
+            # logger.info(f"Preforming GET on {main_url}")
             
-            
-            
-            main_url = base_url + end_bit_of_url
-            logger.info(f"Preforming GET on {main_url}")
-            
-            content = secApi.get(main_url).content
-            soup = BeautifulSoup(content, 'xml')
+            # content = secApi.get(main_url).content
+            # soup = BeautifulSoup(content, 'xml')
             
             time.sleep(10)
-
-        pass

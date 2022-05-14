@@ -65,7 +65,7 @@ with open(edgarIndexFilePath) as file:
             helper.process_10q(filingFile, sec_Api, companyInfoTuple)
         
         elif(companyFiling == "8-K"):
-            continue
+            #continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter13fhr += 1
             logger.info(f"Processing 8-K for : {companyName}\n")
@@ -78,6 +78,7 @@ with open(edgarIndexFilePath) as file:
             fileCounter8k+=1
         
         elif(companyFiling == "11-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter13fhr += 1
             logger.info(f"Processing 11-K for : {companyName}\n")

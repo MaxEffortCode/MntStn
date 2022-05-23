@@ -3,30 +3,86 @@ import os
 import camelot
 import pandas
 import urllib.request
-import re
-import matplotlib.pyplot as plt
+from asyncio.log import logger
+from numpy import NaN
+from pathlib import Path
 from PyPDF2 import PdfFileWriter, PdfFileReader 
 from PyPDF2.errors import PdfReadError
 from pdf2image import convert_from_path
-from pyparsing import Regex
-from Apps.Collection.src.data_base_helper import get_list_of_files
 
 
+def get_list_of_files(dirName):
+    # create a list of file and sub directories 
+    # names in the given directory 
+    listOfFile = os.listdir(dirName)
+    allFiles = list()
+    # Iterate over all the entries
+    for entry in listOfFile:
+        # Create full path
+        fullPath = os.path.join(dirName, entry)
+        # If entry is a directory then get the list of files in this directory 
+        if os.path.isdir(fullPath):
+            allFiles = allFiles + get_list_of_files(fullPath)
+        else:
+            allFiles.append(fullPath)
+                
+    return allFiles
+
+
+def count_files_in_dir(dir):
+    count = 0
+    dir_path = dir
+    for path in os.scandir(dir_path):
+        if path.is_file():
+            count += 1
+    return count
 
 def htm_to_html(htm_link, file_path):
     urllib.request.urlretrieve(htm_link, file_path)
 
-def read_html_pandas(request_content):
-    list_of_terms = ['assets', 'net', 'income', 'Name:', 'Name: ', 'Name']
-    pat1 = fr"\b({'|'.join(list_of_terms)})\b"
+def read_html_pandas(request_content, companyInfoTuple):
+    list_of_terms = ['assets', 'net', 'income', 'Net Revenues', 'Operating Loss', 'Net Income (Loss)', 'Net Income (Loss) per Share', 'Operating Income (Loss)',\
+        'Revenues:', 'Total Revenues', 'Costs and Expenses:', 'Lease operating expenses', 'Income tax benefit (expense)', 'Net Income (Loss) from Continuing Operations',\
+            'Income tax benefit (expense)', 'Lease operating expenses', 'Common stock repurchased for tax withholding', 'Tax effect of adjustments', 'Revenues',\
+                'Costs and expenses', 'EBITDA', 'Propane', 'Capital expenditures:', '$']
+    terms_indicating_thousands = ['thousands', 'THOUSANDS', 'Thousands', 'thousands:']
+    is_in_thousands = False
 
-    # tables_on_page = pandas.read_html(request_content.text)
-    # dummy = tables_on_page.apply(lambda x: x.str.findall(pat1, re.IGNORECASE).astype(bool)) \
-    #       .any().astype(int).tolist()
     try:
         tables_on_page = pandas.read_html(request_content.text)
+
         for table in tables_on_page:
-            print(f"table : {table} \n columns : {table.columns}")
+            #presumable in thousands except for shares
+            if any(term in request_content.text for term in terms_indicating_thousands):
+                is_in_thousands = True
+                print(f"is in thousands = True")
+                
+            else:
+                is_in_thousands = False
+                print(f"is in thousands = False")
+                
+            #print all tables containing any values inside list of terms
+            if any(term in table.values for term in list_of_terms):
+                table = table.replace('$', NaN)
+                table = table.replace(')', NaN)
+                table = table.replace('(', NaN)
+                table = table.loc[:,~table.columns.duplicated()]
+                table = table.dropna(axis=1, how='all')
+                table = table.dropna(axis=0, how='all')
+                
+                print(f"columns : {table.columns} table: {table}\n\n")
+                #companyName, companyFiling, qtr, yr
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{companyInfoTuple[1]}_tier_2_data/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                p = Path(path)
+                p.mkdir(parents=True,exist_ok=True)
+                try:
+                    table_num = count_files_in_dir(path)
+                    table.to_csv(path_or_buf=f"{path}/{table_num}")
+                    print(f"{path}/{table_num}")
+                    time.sleep(100)
+                except:
+                    logger.error(f"failed converting table to csv on {path}")
+                    
     
     except ValueError as e: print(e)
 

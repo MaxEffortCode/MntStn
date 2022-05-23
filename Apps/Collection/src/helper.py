@@ -404,11 +404,11 @@ class helper:
                 end_bit_of_url = "8-k-filing.html"
                 print(f"htm = {htm}")
                 request_content = secApi.get(htm)
-                read_html_pandas(request_content)
+                read_html_pandas(request_content, companyInfoTuple)
 
             if(name != 'FilingSummary.xml'):
                 continue
-            continue
+            
             xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
             logger.info(f"Searching through: {xmlSummary}")
             base_url = xmlSummary.replace('FilingSummary.xml', '')

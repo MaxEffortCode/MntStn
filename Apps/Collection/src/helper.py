@@ -1,20 +1,25 @@
 import csv
 from distutils.log import debug
+from fileinput import filename
 import re
 import os
 import time
 import xml.etree.ElementTree as ET
 import pandas as pd
 import weasyprint
+from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 
 from IPython.display import display
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Doctype
 from Settings.setup_logger import logging
 from pathlib import Path 
 
 
-
 logger = logging.getLogger(__name__)
+
+def html_to_pdf(url, path, pdf_name):
+        pdf = weasyprint.HTML(url).write_pdf()
+        open(f'{path}/{pdf_name}.pdf', 'ab').write(pdf)
 
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
@@ -30,7 +35,11 @@ class helper:
                 logger.info("Error downloading and processing the Edgar Index file - rerun as it now most likely contains corrupted data: %s - %s." % (e.filename, e.strerror))
 
         return edgarIndexFileDownloadPath
+    
 
+    def find_tables(pdf, out_file = None):
+        pass
+    
     def process_13f_hr_subtree(self, subtree, writer):
         nameOfIssuer = ''
         cusip = ''
@@ -106,6 +115,39 @@ class helper:
                 for child in root:
                     self.process_13f_hr_subtree(child, writer)
 
+    #TODO make clean
+    def process_11k(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            #file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
+            name = file['name']
+            print(f"name = {name}")
+            
+            if "11-k" not in name and "11k" not in name:
+                continue
+            
+            end_bit_of_url = name
+            xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+            logger.info(f"Searching through: {xmlSummary}")
+            base_url = xmlSummary.replace(name, '')
+            content = secApi.get(xmlSummary).content
+            
+            #print(content)
+            soup = BeautifulSoup(content, 'lxml')
+            print(f"\n\n\nsoup \n\n {soup.find_all('a')}")
+            for table in soup.find_all('table'):
+                for table_row in table:
+                    print(f"\ntable row \n {table_row.text}\n")
+                    
+
+            # main_url = base_url + end_bit_of_url
+            # logger.info(f"Preforming GET on {main_url}")
+            
+            # content = secApi.get(main_url).content
+            # soup = BeautifulSoup(content, 'xml')
+            
+            time.sleep(10)
+
+    
     def process_10k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             if file['name'] == 'FilingSummary.xml':
@@ -242,6 +284,17 @@ class helper:
                     p.mkdir(parents=True,exist_ok=True)
 
                     dataFrame.to_csv(f"{path}/{reportListName}.csv", index = True, header = True)
+    
+    def process_NT10k(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            if 'nt' in file['name']:
+                filing_type = companyInfoTuple[1].replace(" ", "")
+                file_url = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                p = Path(path)
+                p.mkdir(parents=True,exist_ok=True)
+                html_to_pdf(file_url, p, f"{filing_type}_filling")
+        return None
 
     def process_10q(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
@@ -389,9 +442,17 @@ class helper:
         for file in filingFile.json()['directory']['item']:
             #file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
             name = file['name']
+            if ".htm" in name and ".html" not in name:
+                htm = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                end_bit_of_url = "8-k-filing.html"
+                print(f"htm = {htm}")
+                request_content = secApi.get(htm)
+                read_html_pandas(request_content, companyInfoTuple)
+
             if(name != 'FilingSummary.xml'):
                 continue
-
+            
             xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
             logger.info(f"Searching through: {xmlSummary}")
             base_url = xmlSummary.replace('FilingSummary.xml', '')
@@ -405,7 +466,6 @@ class helper:
             
             content = secApi.get(main_url).content
             soup = BeautifulSoup(content, 'xml')
-            
 
             pdf = weasyprint.HTML(main_url).write_pdf()
             
@@ -429,3 +489,35 @@ class helper:
             except:
                 logger.error(f"http 404 not found \n")
                 time.sleep(1)
+        
+        return
+    
+    def process_4(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            print(f"\n******** file json: {file} *********\n")
+            if 'headers' in file['name']:
+                base_link = secApi.baseUrl + filingFile.json()['directory']['name'] + "/"
+                link = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+            else:
+                continue
+            
+            content = secApi.get(link).content
+            soup = BeautifulSoup(content, features="lxml")
+            href_links = []
+            for href_link in soup.find_all('a'):
+                print(f"href : {href_link.contents[0]}")
+                if 'html' in href_link.contents[0]:
+                    href_links.append(href_link['href'])
+                    
+            print(f"\n********links: {href_links} *********\n")
+            
+            for doc_link in href_links:
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{companyInfoTuple[1]}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                p = Path(path)
+                p.mkdir(parents=True,exist_ok=True)
+                print(f"**** link: {base_link}/{doc_link} ****")
+                html_to_pdf(f"{base_link}/{doc_link}", p, "doc4")
+        pass
+    
+    
+   

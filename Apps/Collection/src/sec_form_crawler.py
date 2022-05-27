@@ -14,11 +14,15 @@ yr = '2022'
 qtr = '1'
 
 response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+#creates giant list with ALL company filing from the qrt
 edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
 fileCounter13fhr = 0
 fileCounter10q = 0
 fileCounter10k = 0
 fileCounter8k = 0
+fileCounter11k = 0
+fileCounter4 = 0
+fileCounterUntracked = 0
 
 
 logger.info(f"{edgarIndexFilePath}")
@@ -32,39 +36,9 @@ with open(edgarIndexFilePath) as file:
         companyName = companyName.replace(' ', '-')
         companyFiling = splitLineCompanyInfo[2]
 
-        if(companyFiling == "13F-HR"):
-            #continue
-            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
-            fileCounter13fhr += 1
-            logger.info(f"Processing 13F-HR for : {companyName}\n")
-            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
-            time.sleep(1/10)
-            helper().process_13f_hr(filingFile, companyInfoTuple)
-            #pass in to sql helper companyInfoTuple
 
-
-        elif(companyFiling == "10-K"):
-            #continue
-            companyInfoTuple = (companyName, companyFiling, qtr, yr)
-            fileCounter10k += 1
-            logger.info(f"Processing 10-K for : {companyName}\n")
-            filingFile = sec_Api.get10kFilingForCompanyApi(splitLineCompanyInfo)
-            time.sleep(1/10)
-            #sec api is the returned object from a get request direct to sec.gov
-            helper.process_10k(filingFile, sec_Api, companyInfoTuple)
-        
-        elif(companyFiling == "10-Q"):
-            #continue
-            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
-            fileCounter10q += 1
-            logger.info(f"Processing 10Q for : {companyName}\n")
-            filingFile = sec_Api.get10QFilingForCompanyApi(splitLineCompanyInfo)
-            print(filingFile.content)
-            time.sleep(1/10)
-            helper.process_10q(filingFile, sec_Api, companyInfoTuple)
-        
-        elif(companyFiling == "8-K"):
-            #continue
+        if(companyFiling == "8-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter13fhr += 1
             logger.info(f"Processing 8-K for : {companyName}\n")
@@ -75,7 +49,140 @@ with open(edgarIndexFilePath) as file:
             time.sleep(1/10)
             helper.process_8k(filingFile, sec_Api, companyInfoTuple)
             fileCounter8k+=1
+        
+        
+        elif(companyFiling == "10-K"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr)
+            fileCounter10k += 1
+            logger.info(f"Processing 10-K for : {companyName}\n")
+            filingFile = sec_Api.get10kFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            #sec api is the returned object from a get request direct to sec.gov
+            helper.process_10k(filingFile, sec_Api, companyInfoTuple)
+        
+        
+        elif(companyFiling == "10-K/A"):
+            pass
+        
+        
+        elif(companyFiling == "10-Q"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter10q += 1
+            logger.info(f"Processing 10Q for : {companyName}\n")
+            filingFile = sec_Api.get10QFilingForCompanyApi(splitLineCompanyInfo)
+            print(filingFile.content)
+            time.sleep(1/10)
+            helper.process_10q(filingFile, sec_Api, companyInfoTuple)
+        
+        elif(companyFiling == "NT 10-K"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter10q += 1
+            logger.info(f"Processing NT 10k for : {companyName}\n")
+            filingFile = sec_Api.get10NT10KFilingForCompanyApi(splitLineCompanyInfo)
+            print(filingFile.content)
+            time.sleep(1/10)
+            helper.process_NT10k(filingFile, sec_Api, companyInfoTuple)
+            
 
+        elif(companyFiling == "11-K"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter13fhr += 1
+            logger.info(f"Processing 11-K for : {companyName}\n")
+            filingFile = sec_Api.get8KFilingForCompanyApi(splitLineCompanyInfo)
+            print(f"filing file: {filingFile}")
+            #time.sleep(3)
+            helper.process_11k(filingFile, sec_Api, companyInfoTuple)
+            fileCounter11k+=1
+            pass
+        
+        elif(companyFiling == "13F-HR"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter13fhr += 1
+            logger.info(f"Processing 13F-HR for : {companyName}\n")
+            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper().process_13f_hr(filingFile, companyInfoTuple)
+            #pass in to sql helper companyInfoTuple
+        
+        elif(companyFiling == "SC 13D"):
+            pass
+        
+        elif(companyFiling == "SC 13D/A"):
+            pass
+        
+        elif(companyFiling == "SC 13G/A"):
+            pass
+        
+        elif(companyFiling == "24F-2NT"):
+            pass
+        
+        elif(companyFiling == "497"):
+            pass
+        
+        elif(companyFiling == "N-CEN/A"):
+            pass
+        
+        elif(companyFiling == "N-CEN"):
+            pass
+        
+        elif(companyFiling == "NPORT-P"):
+            pass
+        
+        elif(companyFiling == "4"):
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter4 += 1
+            logger.info(f"Processing 4 for : {companyName}\n")
+            filingFile = sec_Api.get4FilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper.process_4(filingFile, sec_Api, companyInfoTuple)
+            pass
+        
+        elif(companyFiling == "4/A"):
+            pass
+        
+        elif(companyFiling == "S-8 POS"):
+            pass
+        
+        elif(companyFiling == "24F-2NT"):
+            pass
+        
+        elif(companyFiling == "UPLOAD"):
+            pass
+        
+        elif(companyFiling == "CORRESP"):
+            pass
+        
+        elif(companyFiling == "X-17A-5"):
+            pass
+        
+        elif(companyFiling == "DEF 14A"):
+            pass
+        
+        
+        elif(companyFiling == "SUPPL"):
+            pass
+        
+        elif(companyFiling == "FWP"):
+            pass
+        
+        elif(companyFiling == "6-K"):
+            pass
+        
+        elif(companyFiling == "40-F"):
+            pass
+        
+        else:
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounterUntracked += 1
+            logger.info(f"Untracked for : {companyName}\n")            
+            time.sleep(1/15)
+
+        
 
 
 logger.info("Processed " + str(fileCounter13fhr) + " 13F-HR files in master file.")

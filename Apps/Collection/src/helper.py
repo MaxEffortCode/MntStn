@@ -3,23 +3,34 @@ from distutils.log import debug
 from fileinput import filename
 import re
 import os
+from shutil import ExecError
 import time
 import xml.etree.ElementTree as ET
 import pandas as pd
 import weasyprint
 from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 
+from Apps.Collection.src.api.sec_api import SecAPI
 from IPython.display import display
 from bs4 import BeautifulSoup, Doctype
 from Settings.setup_logger import logging
 from pathlib import Path 
+from urllib.request import urlretrieve, build_opener, install_opener
 
 
 logger = logging.getLogger(__name__)
 
+def pdf_dowload_from_url(url, path, pdf_name):
+    sec_pdf = SecAPI()
+    the_damn_pdf = sec_pdf.get(url)
+    with open(f'{path}/{pdf_name}.pdf', 'wb') as fd:
+        for chunk in the_damn_pdf.iter_content(2048):
+            fd.write(chunk)
+
+
 def html_to_pdf(url, path, pdf_name):
-        pdf = weasyprint.HTML(url).write_pdf()
-        open(f'{path}/{pdf_name}.pdf', 'ab').write(pdf)
+    pdf = weasyprint.HTML(url).write_pdf()
+    open(f'{path}/{pdf_name}.pdf', 'ab').write(pdf)
 
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
@@ -35,10 +46,6 @@ class helper:
                 logger.info("Error downloading and processing the Edgar Index file - rerun as it now most likely contains corrupted data: %s - %s." % (e.filename, e.strerror))
 
         return edgarIndexFileDownloadPath
-    
-
-    def find_tables(pdf, out_file = None):
-        pass
     
     def process_13f_hr_subtree(self, subtree, writer):
         nameOfIssuer = ''
@@ -146,8 +153,7 @@ class helper:
             # soup = BeautifulSoup(content, 'xml')
             
             time.sleep(10)
-
-    
+ 
     def process_10k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             if file['name'] == 'FilingSummary.xml':
@@ -294,6 +300,39 @@ class helper:
                 p = Path(path)
                 p.mkdir(parents=True,exist_ok=True)
                 html_to_pdf(file_url, p, f"{filing_type}_filling")
+        return None
+
+    def process_10KA(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            try:
+                if '.htm' in file['name']:
+                    filing_type = companyInfoTuple[1].replace("/", "")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    file_url = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
+                    p = Path(path)
+                    p.mkdir(parents=True,exist_ok=True)
+                    html_to_pdf(file_url, p, f"{filing_type}_filling")
+                    time.sleep(1/10)
+                
+                if '.pdf' in file['name']:
+                    filing_type = companyInfoTuple[1].replace("/", "")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    file_url = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
+                    p = Path(path)
+                    p.mkdir(parents=True,exist_ok=True)
+                    pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
+                    time.sleep(1/10)
+                    
+                else:
+                    print(f"didnt attempt to download: {file['name']}\n \
+                        at url: {file_url}")
+                    time.sleep(1/10)
+            except Exception as e:
+                print(f"failed on {file_url}\n\
+                    with error: {e}")
+                time.sleep(10)
         return None
 
     def process_10q(filingFile, secApi, companyInfoTuple):
@@ -517,7 +556,35 @@ class helper:
                 p.mkdir(parents=True,exist_ok=True)
                 print(f"**** link: {base_link}/{doc_link} ****")
                 html_to_pdf(f"{base_link}/{doc_link}", p, "doc4")
-        pass
+        
+        return None  
     
+    def process_4A(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            print(f"\n******** file json: {file} *********\n")
+            if 'headers' in file['name']:
+                base_link = secApi.baseUrl + filingFile.json()['directory']['name'] + "/"
+                link = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+            else:
+                continue
+            
+            content = secApi.get(link).content
+            soup = BeautifulSoup(content, features="lxml")
+            href_links = []
+            for href_link in soup.find_all('a'):
+                print(f"href : {href_link.contents[0]}")
+                if 'html' in href_link.contents[0]:
+                    href_links.append(href_link['href'])
+                    
+            print(f"\n********links: {href_links} *********\n")
+            
+            for doc_link in href_links:
+                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{companyInfoTuple[1]}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                p = Path(path)
+                p.mkdir(parents=True,exist_ok=True)
+                print(f"**** link: {base_link}/{doc_link} ****")
+                html_to_pdf(f"{base_link}/{doc_link}", p, "doc4")
+        
+        return None
     
    

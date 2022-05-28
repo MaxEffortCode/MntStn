@@ -63,6 +63,14 @@ with open(edgarIndexFilePath) as file:
         
         
         elif(companyFiling == "10-K/A"):
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter10q += 1
+            logger.info(f"Processing NT 10-K/A for : {companyName}\n")
+            filingFile = sec_Api.get10KAFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(10)
+            print(filingFile.content)
+            time.sleep(1/10)
+            helper.process_10KA(filingFile, sec_Api, companyInfoTuple)
             pass
         
         
@@ -134,6 +142,7 @@ with open(edgarIndexFilePath) as file:
             pass
         
         elif(companyFiling == "4"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter4 += 1
             logger.info(f"Processing 4 for : {companyName}\n")
@@ -143,6 +152,13 @@ with open(edgarIndexFilePath) as file:
             pass
         
         elif(companyFiling == "4/A"):
+            continue
+            companyInfoTuple = (companyName, companyFiling, qtr, yr) 
+            fileCounter4 += 1
+            logger.info(f"Processing 4A for : {companyName}\n")
+            filingFile = sec_Api.get4AFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper.process_4A(filingFile, sec_Api, companyInfoTuple)
             pass
         
         elif(companyFiling == "S-8 POS"):

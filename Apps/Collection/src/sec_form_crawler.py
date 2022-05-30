@@ -31,7 +31,7 @@ def write_untracked_file_type(file_type):
     path = f"{os.path.dirname(__file__)}/resources/untracked_files"
     #f = open(f"{path}/untracked_filing_types.txt", "r")
     with open(f"{path}/untracked_filing_types.txt") as file:
-        if file_type not in file.read():
+        if file_type not in file.read().splitlines():
             file = open(f"{path}/untracked_filing_types.txt", "a")
             file.write(f"{file_type}\n")
     file.close()

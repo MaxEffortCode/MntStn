@@ -1,8 +1,10 @@
 import itertools
 import time
+import os
 from Apps.Collection.src.api.sec_api import SecAPI
 from Apps.Collection.src.helper import helper
 from Settings.setup_logger import logging
+
 
 #unix socket on local?
 
@@ -25,7 +27,15 @@ fileCounter4 = 0
 fileCounterUntracked = 0
 
 
-logger.info(f"{edgarIndexFilePath}")
+def write_untracked_file_type(file_type):
+    path = f"{os.path.dirname(__file__)}/resources/untracked_files"
+    #f = open(f"{path}/untracked_filing_types.txt", "r")
+    with open(f"{path}/untracked_filing_types.txt") as file:
+        if file_type not in file.read():
+            file = open(f"{path}/untracked_filing_types.txt", "a")
+            file.write(f"{file_type}\n")
+    file.close()
+
 #"/home/max/MntStn/Apps/Collection/src/resources/edgar-full-index-archives/master-2022-QTR1-test.txt"
 with open(edgarIndexFilePath) as file:
     for line in itertools.islice(file, 11, None):
@@ -63,11 +73,11 @@ with open(edgarIndexFilePath) as file:
         
         
         elif(companyFiling == "10-K/A"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounter10q += 1
             logger.info(f"Processing NT 10-K/A for : {companyName}\n")
             filingFile = sec_Api.get10KAFilingForCompanyApi(splitLineCompanyInfo)
-            time.sleep(10)
             print(filingFile.content)
             time.sleep(1/10)
             helper.process_10KA(filingFile, sec_Api, companyInfoTuple)
@@ -195,7 +205,9 @@ with open(edgarIndexFilePath) as file:
         else:
             companyInfoTuple = (companyName, companyFiling, qtr, yr) 
             fileCounterUntracked += 1
-            logger.info(f"Untracked for : {companyName}\n")            
+            logger.info(f"Untracked for : {companyName}\n\
+                with filing: {companyInfoTuple[1]}")
+            write_untracked_file_type(companyInfoTuple[1])
             time.sleep(1/15)
 
         

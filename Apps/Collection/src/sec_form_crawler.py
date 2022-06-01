@@ -143,6 +143,7 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "24F-2NT"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 24F-2NT for : {companyName}\n")
@@ -153,6 +154,12 @@ with open(edgarIndexFilePath) as file:
             # pass in to sql helper companyInfoTuple
 
         elif(companyFiling == "497"):
+            companyInfoTuple = (companyName, companyFiling, qtr, yr)
+            fileCounter4 += 1
+            logger.info(f"Processing 4 for : {companyName}\n")
+            filingFile = sec_Api.get494FilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper.process_494(filingFile, sec_Api, companyInfoTuple)
             pass
 
         elif(companyFiling == "N-CEN/A"):

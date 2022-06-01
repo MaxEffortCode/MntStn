@@ -124,7 +124,14 @@ with open(edgarIndexFilePath) as file:
                 splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
-            # pass in to sql helper companyInfoTuple
+
+        elif(companyFiling == "13F-HR/A"):
+            companyInfoTuple = (companyName, companyFiling, qtr, yr)
+            fileCounter13fhr += 1
+            logger.info(f"Processing 13F-HR/A for : {companyName}\n")
+            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "SC 13D"):
             pass
@@ -213,8 +220,7 @@ with open(edgarIndexFilePath) as file:
             time.sleep(1/15)
 
 
-logger.info("Processed " + str(fileCounter13fhr) +
-            " 13F-HR files in master file.")
+logger.info("Processed " + str(fileCounter13fhr) + " 13F-HR files in master file.")
 logger.info("Processed " + str(fileCounter10k) + " 10k files in master file.")
 logger.info("Processed " + str(fileCounter10q) + " 10q files in master file.")
 logger.info("Processed " + str(fileCounter8k) + " 8k files in master file.")

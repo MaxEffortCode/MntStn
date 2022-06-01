@@ -83,6 +83,13 @@ class SecAPI:
         response = requests.get(url, headers=self.header)
         LOGGER.info(f"Performing 11-k GET on: {url}")
         return response
+    
+    def get24F2NTFilingForCompanyApi(self, companyInfo):
+        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
+        url = url.replace('-','').replace('.txt', '/index.json')
+        response = requests.get(url, headers=self.header)
+        LOGGER.info(f"Performing 24F2NT GET on: {url}")
+        return response
 
     def get(self, url):
         response = requests.get(url, headers=self.header)

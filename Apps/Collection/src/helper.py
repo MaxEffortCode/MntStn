@@ -658,6 +658,43 @@ class helper:
                     with error: {e}")
                 time.sleep(10)
         return None
+    
+    def process_494(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            try:
+                if '.htm' in file['name']:
+                    filing_type = companyInfoTuple[1].replace("/", "")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                                        "/" + file['name']
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
+                    p = Path(path)
+                    p.mkdir(parents=True, exist_ok=True)
+                    html_to_pdf(file_url, p, f"{filing_type}_filling")
+                    time.sleep(1/10)
+
+                if '.pdf' in file['name']:
+                    filing_type = companyInfoTuple[1].replace("/", "")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                                        "/" + file['name']
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
+                    p = Path(path)
+                    p.mkdir(parents=True, exist_ok=True)
+                    pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
+                    time.sleep(1/10)
+
+                else:
+                    print(f"didnt attempt to download: {file['name']}\n \
+                        at url: {file_url}")
+                    time.sleep(1/10)
+            except Exception as e:
+                print(f"failed on {file_url}\n\
+                    with error: {e}")
+                time.sleep(10)
+        return None
 
     
    

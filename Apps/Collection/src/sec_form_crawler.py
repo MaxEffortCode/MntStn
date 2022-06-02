@@ -222,6 +222,12 @@ with open(edgarIndexFilePath) as file:
 
         else:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
+            fileCounter4 += 1
+            logger.info(f"Processing 4A for : {companyName}\n")
+            filingFile = sec_Api.getUntrackedFilingForCompanyApi(splitLineCompanyInfo)
+            time.sleep(1/10)
+            helper.process_untracked(filingFile, sec_Api, companyInfoTuple)
+
             fileCounterUntracked += 1
             logger.info(f"Untracked for : {companyName}\n\
                 with filing: {companyInfoTuple[1]}")

@@ -125,7 +125,9 @@ with open(edgarIndexFilePath) as file:
             time.sleep(1/10)
             helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
 
+        #broken : 'SecAPI' object has no attribute 'content'
         elif(companyFiling == "13F-HR/A"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR/A for : {companyName}\n")
@@ -157,9 +159,9 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4 for : {companyName}\n")
-            filingFile = sec_Api.get494FilingForCompanyApi(splitLineCompanyInfo)
+            filingFile = sec_Api.get497FilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
-            helper.process_494(filingFile, sec_Api, companyInfoTuple)
+            helper.process_497(filingFile, sec_Api, companyInfoTuple)
             pass
 
         elif(companyFiling == "N-CEN/A"):

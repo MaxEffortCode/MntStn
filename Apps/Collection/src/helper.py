@@ -21,6 +21,48 @@ from urllib.request import urlretrieve, build_opener, install_opener
 logger = logging.getLogger(__name__)
 
 
+def download_htm_files(file, companyInfoTuple, file_url):
+    try:
+        if '.htm' in file['name']:
+            filing_type = companyInfoTuple[1].replace("/", "")
+            filing = companyInfoTuple[2].replace("/", "")
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
+                {filing_type}/{companyInfoTuple[3]}/{filing}"
+            p = Path(path)
+            p.mkdir(parents=True, exist_ok=True)
+            html_to_pdf(file_url, p, f"{filing_type}_filling")
+            time.sleep(1/10)
+        
+        else:
+            return
+    
+    except Exception as e:
+            print(f"failed on {file_url}\n\
+                with error: {e}")
+            time.sleep(10)
+    pass
+
+def download_pdf_files(file, companyInfoTuple, file_url):
+    try:
+        
+        if '.pdf' in file['name']:
+            filing_type = companyInfoTuple[1].replace("/", "")
+            filing = companyInfoTuple[2].replace("/", "")
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
+                {filing_type}/{companyInfoTuple[3]}/{filing}"
+            p = Path(path)
+            p.mkdir(parents=True, exist_ok=True)
+            pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
+            time.sleep(1/10)
+        
+        else:
+            return
+
+    except Exception as e:
+        print(f"failed on {file_url}\n\
+            with error: {e}")
+        time.sleep(10)
+
 def pdf_dowload_from_url(url, path, pdf_name):
     sec_pdf = SecAPI()
     the_damn_pdf = sec_pdf.get(url)
@@ -624,77 +666,44 @@ class helper:
 
     def process_24F2NT(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
+            file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                        "/" + file['name']
             try:
-                if '.htm' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    html_to_pdf(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
-
                 if '.pdf' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
+                    download_pdf_files(file, companyInfoTuple, file_url)
+                
+                elif '.htm' in file['name']:
+                    download_htm_files(file, companyInfoTuple, file_url)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \
                         at url: {file_url}")
                     time.sleep(1/10)
+                
             except Exception as e:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
-                time.sleep(10)
-        return None
+                time.sleep(10)   
     
-    def process_494(filingFile, secApi, companyInfoTuple):
+    def process_497(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
+            file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                        "/" + file['name']
             try:
-                if '.htm' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    html_to_pdf(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
-
                 if '.pdf' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
+                    download_pdf_files(file, companyInfoTuple, file_url)
+                
+                elif '.htm' in file['name']:
+                    download_htm_files(file, companyInfoTuple, file_url)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \
                         at url: {file_url}")
                     time.sleep(1/10)
+                
             except Exception as e:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
-                time.sleep(10)
-        return None
-
-    
-   
+                time.sleep(10)   

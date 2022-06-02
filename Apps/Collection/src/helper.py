@@ -706,4 +706,26 @@ class helper:
             except Exception as e:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
-                time.sleep(10)   
+                time.sleep(10)
+                
+    def process_untracked(filingFile, secApi, companyInfoTuple):
+        for file in filingFile.json()['directory']['item']:
+            file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                        "/" + file['name']
+            try:
+                if '.pdf' in file['name']:
+                    download_pdf_files(file, companyInfoTuple, file_url)
+                
+                elif '.htm' in file['name']:
+                    download_htm_files(file, companyInfoTuple, file_url)
+
+                else:
+                    print(f"didnt attempt to download: {file['name']}\n \
+                        at url: {file_url}")
+                    time.sleep(1/10)
+                
+            except Exception as e:
+                print(f"failed on {file_url}\n\
+                    with error: {e}")
+                time.sleep(10)

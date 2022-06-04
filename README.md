@@ -22,13 +22,12 @@ After installing Postgres app and dragging it your Applications folder, you now 
 sudo find / -name pg_config 
 ```
 
-It should point you to the exec and you will now need to put its containing directory into your PATH like so (I like to put this inside the virtual env since I care about clutter in my system path):
+It should point you to the exec and you will now need to put its containing directory into your PATH like so (I like to put this inside the virtual env since I care about clutter on my system path) I also want to note that the location may change after a PC reboot, as mine did but haven't looked into how it works yet, this part will be updated later when more is learned about it:
 ```
 export PATH=/path/to/postgresql/bin/:$PATH
 ```
 
-Woohoo! Run the form scraper script
-You can now run the main script of this project with the following command:
+Woohoo! Run the form scraper script. You can now run the main script of this project with the following command:
 ```
 python3 -m Apps.Collection.src.sec_form_crawler
 ```

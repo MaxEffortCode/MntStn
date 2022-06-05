@@ -6,12 +6,10 @@ Weasyprint is a library we use to process HTML pages into PDFs. The easiest way 
 ## 2. Create your virtual environment and activate it
 ```
 python3 -m venv venv
-
 ```
-## 2 (for linux users)
+## (additional step for linux users)
 you may need to install python3.8-venv using:
 ```
-
 apt install python3.8-venv
 ```
 

@@ -14,17 +14,8 @@ source venv/bin/activate
 ```
 
 ## 3. Configure Postgres & PATH (Work in Progress - Max if you read this can you pls update this section since you configured Postgres)
-There is no PostgresSQL packages/db natively installed on Mac OS (For Linux/Windows, you’ll need to view their documentation), and a package in this project psycopg2 needs to look for Postgres files. You’ll need to install the Postgres database (outside of a virtual env) and you’ll need to make sure the executable “pg_config” is in your path, otherwise you’ll get psycopg2 library errors.
 
-For Mac OS (out of many solutions I am sure, note I didn’t use homebrew for this):
-After installing Postgres app and dragging it your Applications folder, you now have the pg_config executable. perform the following command to find the executable:
-```
-sudo find / -name pg_config 
-```
-
-It should point you to the exec and you will now need to put its containing directory into your PATH like so (I like to put this inside the virtual env since I care about clutter on my system path) I also want to note that the location may change after a PC reboot, as mine did but haven't looked into how it works yet, this part will be updated later when more is learned about it:
-```
-export PATH=/path/to/postgresql/bin/:$PATH
+There is no longer a need to configure postgres, since we have decided on using a file server rather than a database server.
 ```
 
 Woohoo! Run the form scraper script. You can now run the main script of this project with the following command:

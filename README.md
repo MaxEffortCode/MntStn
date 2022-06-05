@@ -10,11 +10,10 @@ python3 -m venv venv
 ```
 ## 2 (for linux users)
 you may need to install python3.8-venv using:
-
-...
+```
 
 apt install python3.8-venv
-...
+```
 
 It is recommended that you activate your virtual environment with the script provided in the binary directory which is usually the bin folder or Scripts folder for Windows. Technically you can get away without this though.
 ```

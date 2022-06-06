@@ -3,6 +3,20 @@
 ## 1. Setup weasyprint's required libraries
 Weasyprint is a library we use to process HTML pages into PDFs. The easiest way is to use homebrew. If you don’t want to use homebrew and/or use Windows, stop reading this section and go look at their [documentation](https://brew.sh/). This is because homebrew’s Python to create a virtual environment avoids the need to link libraries, and these homebrew libraries that are automatically configured are required by weasyprint. Once homebrew is installed, install Python, Mango, and libffi. If you don’t install the required libraries needed for weasyprint before installing weasyprint, you will receive some errors about libraries not being found, probably about gobject. You can test that you did this correctly by creating a virtual environment, pip installing weasyprint, and performing a “weasyprint —info” command and can proceed on.
 
+## 1.1 Installing HomeBrew (Linux):
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+enabling HomeBrew on PATH:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+Gettin the build essentials fo brew
+sudo apt-get install build-essential
+
+Installing GCC (recommended)
+brew install gcc
+
 ## 2. Create your virtual environment and activate it
 ```
 python3 -m venv venv

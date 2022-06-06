@@ -41,10 +41,6 @@ It is recommended that you activate your virtual environment with the script pro
 source venv/bin/activate
 ```
 
-## 3. Configure Postgres & PATH (Work in Progress - Max if you read this can you pls update this section since you configured Postgres)
-
-There is no longer a need to configure postgres, since we have decided on using a file server rather than a database server.
-
 Woohoo! Run the form scraper script. You can now run the main script of this project with the following command:
 ```
 python3 -m Apps.Collection.src.sec_form_crawler
@@ -58,7 +54,7 @@ Deactivate
 ```
 
 # TLDR; - Configuring the Development Environment
-1. Install Python, weasyprint’s required libraries, Postgres, and configure PATH properly
+1. Install Python, weasyprint’s required libraries, and configure PATH properly
 2. Create virtual environment and activate it
 3. Launch the form scraper script with the command: “python3 -m Apps.Collection.src.sec_form_crawler”
 4. Deactivate your virtual environment

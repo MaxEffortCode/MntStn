@@ -8,14 +8,20 @@ Weasyprint is a library we use to process HTML pages into PDFs. The easiest way 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 enabling HomeBrew on PATH:
+```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+```
 
 Gettin the build essentials fo brew
+```
 sudo apt-get install build-essential
+```
 
 Installing GCC (recommended)
+```
 brew install gcc
+```
 
 ## 2. Create your virtual environment and activate it
 ```

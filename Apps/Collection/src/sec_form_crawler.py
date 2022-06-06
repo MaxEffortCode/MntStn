@@ -48,7 +48,6 @@ with open(edgarIndexFilePath) as file:
         companyFiling = splitLineCompanyInfo[2]
 
         if(companyFiling == "8-K"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 8-K for : {companyName}\n")
@@ -61,7 +60,6 @@ with open(edgarIndexFilePath) as file:
             fileCounter8k += 1
 
         elif(companyFiling == "10-K"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10k += 1
             logger.info(f"Processing 10-K for : {companyName}\n")
@@ -72,7 +70,6 @@ with open(edgarIndexFilePath) as file:
             helper.process_10k(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "10-K/A"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10-K/A for : {companyName}\n")
@@ -84,7 +81,6 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "10-Q"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing 10Q for : {companyName}\n")
@@ -95,7 +91,6 @@ with open(edgarIndexFilePath) as file:
             helper.process_10q(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "NT 10-K"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10k for : {companyName}\n")
@@ -106,7 +101,6 @@ with open(edgarIndexFilePath) as file:
             helper.process_NT10k(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "11-K"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             logger.info(f"Processing 11-K for : {companyName}\n")
             filingFile = sec_Api.get8KFilingForCompanyApi(splitLineCompanyInfo)
@@ -116,7 +110,6 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "13F-HR"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR for : {companyName}\n")
@@ -127,7 +120,6 @@ with open(edgarIndexFilePath) as file:
 
         #broken : 'SecAPI' object has no attribute 'content'
         elif(companyFiling == "13F-HR/A"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR/A for : {companyName}\n")
@@ -145,7 +137,6 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "24F-2NT"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 24F-2NT for : {companyName}\n")
@@ -158,7 +149,7 @@ with open(edgarIndexFilePath) as file:
         elif(companyFiling == "497"):
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
-            logger.info(f"Processing 4 for : {companyName}\n")
+            logger.info(f"Processing 497 for : {companyName}\n")
             filingFile = sec_Api.get497FilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_497(filingFile, sec_Api, companyInfoTuple)
@@ -174,7 +165,6 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "4"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4 for : {companyName}\n")
@@ -184,7 +174,6 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "4/A"):
-            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4A for : {companyName}\n")

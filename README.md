@@ -8,11 +8,14 @@ Weasyprint is a library we use to process HTML pages into PDFs. The easiest way 
 python3 -m venv venv
 ```
 ## (additional step for linux users)
-you may need to install python3.8-venv using:
+you may need to install virtualenv using:
 ```
-apt install python3.8-venv
+pip install virtualenv
 ```
-
+and runing:
+```
+source <local direcrtory path to file>/MntStn/venv/bin/activate
+```
 It is recommended that you activate your virtual environment with the script provided in the binary directory which is usually the bin folder or Scripts folder for Windows. Technically you can get away without this though.
 ```
 source venv/bin/activate

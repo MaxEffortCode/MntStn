@@ -43,7 +43,7 @@ source venv/bin/activate
 
 Woohoo! Run the form scraper script. You can now run the main script of this project with the following command:
 ```
-python3 -m Apps.Collection.src.sec_form_crawler
+python3.10 -m Apps.Collection.src.sec_form_crawler
 ```
 
 We run it this way so that we don’t ever have to resort to path hacks, as launching scripts directly from where they are located will set the Python “path” to that directory. Doing it like above gives us consistent and predictable imports to use in each module.

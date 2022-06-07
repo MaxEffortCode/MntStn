@@ -6,6 +6,7 @@ import os
 from shutil import ExecError
 import time
 import xml.etree.ElementTree as ET
+from click import secho
 import pandas as pd
 import weasyprint
 from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
@@ -69,6 +70,23 @@ def pdf_dowload_from_url(url, path, pdf_name):
     with open(f'{path}/{pdf_name}.pdf', 'wb') as fd:
         for chunk in the_damn_pdf.iter_content(2048):
             fd.write(chunk)
+
+def html_save(file, companyInfoTuple, file_url):
+    secApi = SecAPI()
+    html_file = secApi.get(file_url)
+    
+    filing_type = companyInfoTuple[1].replace("/", "")
+    filing = companyInfoTuple[2].replace("/", "")
+    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
+        {filing_type}/{companyInfoTuple[3]}/{filing}"
+    p = Path(path)
+    p.mkdir(parents=True, exist_ok=True)
+    
+    html_name = f"{filing_type}_filling"
+    open(f'{p}/{html_name}_direct_save.html', 'wb').write(html_file.content)
+    print(f"\n\n *******************  {p}/{html_name}_direct_save.pdf'  ********************* \n\n")
+    time.sleep(100)
+
 
 
 def html_to_pdf(url, path, pdf_name):
@@ -694,9 +712,11 @@ class helper:
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
+                    html_save(file, companyInfoTuple, file_url)
                 
                 elif '.htm' in file['name']:
                     download_htm_files(file, companyInfoTuple, file_url)
+                    html_save(file, companyInfoTuple, file_url)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \
@@ -716,9 +736,11 @@ class helper:
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
+                    html_save(file, companyInfoTuple, file_url)
                 
                 elif '.htm' in file['name']:
                     download_htm_files(file, companyInfoTuple, file_url)
+                    html_save(file, companyInfoTuple, file_url)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \

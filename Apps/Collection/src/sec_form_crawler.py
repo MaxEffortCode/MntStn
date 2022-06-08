@@ -65,8 +65,7 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10k += 1
             logger.info(f"Processing 10-K for : {companyName}\n")
-            filingFile = sec_Api.get10kFilingForCompanyApi(
-                splitLineCompanyInfo)
+            filingFile = sec_Api.get10kFilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             # sec api is the returned object from a get request direct to sec.gov
             helper.process_10k(filingFile, sec_Api, companyInfoTuple)
@@ -76,8 +75,7 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10-K/A for : {companyName}\n")
-            filingFile = sec_Api.get10KAFilingForCompanyApi(
-                splitLineCompanyInfo)
+            filingFile = sec_Api.get10KAFilingForCompanyApi(splitLineCompanyInfo)
             print(filingFile.content)
             time.sleep(1/10)
             helper.process_10KA(filingFile, sec_Api, companyInfoTuple)
@@ -88,8 +86,7 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing 10Q for : {companyName}\n")
-            filingFile = sec_Api.get10QFilingForCompanyApi(
-                splitLineCompanyInfo)
+            filingFile = sec_Api.get10QFilingForCompanyApi(splitLineCompanyInfo)
             print(filingFile.content)
             time.sleep(1/10)
             helper.process_10q(filingFile, sec_Api, companyInfoTuple)
@@ -99,8 +96,7 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10k for : {companyName}\n")
-            filingFile = sec_Api.get10NT10KFilingForCompanyApi(
-                splitLineCompanyInfo)
+            filingFile = sec_Api.get10NT10KFilingForCompanyApi(splitLineCompanyInfo)
             print(filingFile.content)
             time.sleep(1/10)
             helper.process_NT10k(filingFile, sec_Api, companyInfoTuple)
@@ -120,20 +116,20 @@ with open(edgarIndexFilePath) as file:
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR for : {companyName}\n")
-            filingFile = sec_Api.get13FHRFilingForCompanyApi(
-                splitLineCompanyInfo)
-            time.sleep(1/10)
-            helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
-
-        #broken : 'SecAPI' object has no attribute 'content'
-        elif(companyFiling == "13F-HR/A"):
-            continue
-            companyInfoTuple = (companyName, companyFiling, qtr, yr)
-            fileCounter13fhr += 1
-            logger.info(f"Processing 13F-HR/A for : {companyName}\n")
             filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
+
+        #work in progress by RG
+        elif(companyFiling == "13F-HR/A"):
+            pass
+            #companyInfoTuple = (companyName, companyFiling, qtr, yr)
+            #fileCounter13fhr += 1
+            #logger.info(f"Processing 13F-HR/A for : {companyName}\n")
+            #filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
+            #time.sleep(1/10)
+            #helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
+
 
         elif(companyFiling == "SC 13D"):
             pass

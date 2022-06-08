@@ -4,16 +4,20 @@ from Apps.Collection.src.api.sec_api import SecAPI
 import itertools
 from os.path import exists
 
+# I think that we should expand this later to do larger date range of forms
+# We may learn that standardizations of forms change through out years
+# and that in the future if they change, these tests will catch them and tell us
 
-def generate_companyInfoTuple(filing_type):
-    sec_Api = SecAPI()
-    yr = '2022'
-    qtr = '1'
+sec_Api = SecAPI()
+yr = '2022'
+qtr = '1'
+response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
 
-    response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
-    # creates giant list with ALL company filing from the qrt
-    edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
-    
+#
+# Helper methods below for tests
+# ===================================================================
+def get_company_info_tuple_by_filing_type(filing_type):
     # "/home/max/MntStn/Apps/Collection/src/resources/edgar-full-index-archives/master-2022-QTR1-test.txt"
     with open(edgarIndexFilePath) as file:
         for line in itertools.islice(file, 11, None):
@@ -31,14 +35,15 @@ def generate_companyInfoTuple(filing_type):
     
     return list_of_filing_tuples
                 
-            
-            
-            
+# ===================================================================       
+
+def test_downloadEdgarIndexFileAndGetPath():
+    assert(response.status_code == 200)
+    assert(type(edgarIndexFilePath) == str)
 
 #this... this needs to be fixed
 def test_download_htm_files():
-    sec_Api = SecAPI()
-    companyInfoTuplePlusUrl = generate_companyInfoTuple('497')
+    companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
     filingFile = []
     for fileDir in companyInfoTuplePlusUrl:
         filingFile.append(fileDir[4])
@@ -57,7 +62,6 @@ def test_download_htm_files():
                         {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
     
     assert(True)
-            
     
 def test_download_pdf_files():
     assert False
@@ -67,17 +71,6 @@ def test_pdf_dowload_from_url():
 
 def test_html_to_pdf():
     assert False
-
-def test_downloadEdgarIndexFileAndGetPath():
-    qtr = 1
-    yr = 2021
-    sec_Api = SecAPI()
-
-    response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
-    assert(response.status_code == 200)
-
-    edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
-    assert(type(edgarIndexFilePath) == str)
 
 def test_process_13f_hr():
     assert False

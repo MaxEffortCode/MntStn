@@ -48,6 +48,7 @@ with open(edgarIndexFilePath) as file:
         companyFiling = splitLineCompanyInfo[2]
 
         if(companyFiling == "8-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 8-K for : {companyName}\n")
@@ -60,6 +61,7 @@ with open(edgarIndexFilePath) as file:
             fileCounter8k += 1
 
         elif(companyFiling == "10-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10k += 1
             logger.info(f"Processing 10-K for : {companyName}\n")
@@ -70,6 +72,7 @@ with open(edgarIndexFilePath) as file:
             helper.process_10k(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "10-K/A"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10-K/A for : {companyName}\n")
@@ -81,6 +84,7 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "10-Q"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing 10Q for : {companyName}\n")
@@ -91,6 +95,7 @@ with open(edgarIndexFilePath) as file:
             helper.process_10q(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "NT 10-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter10q += 1
             logger.info(f"Processing NT 10k for : {companyName}\n")
@@ -101,15 +106,17 @@ with open(edgarIndexFilePath) as file:
             helper.process_NT10k(filingFile, sec_Api, companyInfoTuple)
 
         elif(companyFiling == "11-K"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             logger.info(f"Processing 11-K for : {companyName}\n")
             filingFile = sec_Api.get8KFilingForCompanyApi(splitLineCompanyInfo)
             print(f"filing file: {filingFile}")
             helper.process_11k(filingFile, sec_Api, companyInfoTuple)
             fileCounter11k += 1
-            pass
 
         elif(companyFiling == "13F-HR"):
+            #TODO: fix secApi error check the functino call to helper.process_13f_hr
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR for : {companyName}\n")
@@ -120,6 +127,7 @@ with open(edgarIndexFilePath) as file:
 
         #broken : 'SecAPI' object has no attribute 'content'
         elif(companyFiling == "13F-HR/A"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR/A for : {companyName}\n")
@@ -137,6 +145,7 @@ with open(edgarIndexFilePath) as file:
             pass
 
         elif(companyFiling == "24F-2NT"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 24F-2NT for : {companyName}\n")
@@ -153,78 +162,44 @@ with open(edgarIndexFilePath) as file:
             filingFile = sec_Api.get497FilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_497(filingFile, sec_Api, companyInfoTuple)
-            pass
-
-        elif(companyFiling == "N-CEN/A"):
-            pass
-
-        elif(companyFiling == "N-CEN"):
-            pass
-
-        elif(companyFiling == "NPORT-P"):
-            pass
-
+            
         elif(companyFiling == "4"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4 for : {companyName}\n")
             filingFile = sec_Api.get4FilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_4(filingFile, sec_Api, companyInfoTuple)
-            pass
 
         elif(companyFiling == "4/A"):
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4A for : {companyName}\n")
             filingFile = sec_Api.get4AFilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_4A(filingFile, sec_Api, companyInfoTuple)
-            pass
-
-        elif(companyFiling == "S-8 POS"):
-            pass
-
-        elif(companyFiling == "UPLOAD"):
-            pass
-
-        elif(companyFiling == "CORRESP"):
-            pass
-
-        elif(companyFiling == "X-17A-5"):
-            pass
-
-        elif(companyFiling == "DEF 14A"):
-            pass
-
-        elif(companyFiling == "SUPPL"):
-            pass
-
-        elif(companyFiling == "FWP"):
-            pass
-
-        elif(companyFiling == "6-K"):
-            pass
-
-        elif(companyFiling == "40-F"):
-            pass
-
+            
         else:
+            continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter4 += 1
             logger.info(f"Processing 4A for : {companyName}\n")
             filingFile = sec_Api.getUntrackedFilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
             helper.process_untracked(filingFile, sec_Api, companyInfoTuple)
-
             fileCounterUntracked += 1
             logger.info(f"Untracked for : {companyName}\n\
                 with filing: {companyInfoTuple[1]}")
             write_untracked_file_type(companyInfoTuple[1])
-            time.sleep(1/15)
+            time.sleep(1/15) 
 
 
 logger.info("Processed " + str(fileCounter13fhr) + " 13F-HR files in master file.")
 logger.info("Processed " + str(fileCounter10k) + " 10k files in master file.")
 logger.info("Processed " + str(fileCounter10q) + " 10q files in master file.")
 logger.info("Processed " + str(fileCounter8k) + " 8k files in master file.")
+logger.info("Processed " + str(fileCounter11k) + " 11k files in master file.")
+logger.info("Processed " + str(fileCounter4) + " 4 files in master file.")
+logger.info("Processed " + str(fileCounterUntracked) + " Untracked files in master file.")

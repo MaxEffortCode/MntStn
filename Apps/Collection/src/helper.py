@@ -82,17 +82,14 @@ def pdf_dowload_from_url(url, path, pdf_name):
 def html_save(file, companyInfoTuple, file_url):
     secApi = SecAPI()
     html_file = secApi.get(file_url)
-    
     filing_type = companyInfoTuple[1].replace("/", "")
     filing = companyInfoTuple[2].replace("/", "")
-    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
-        {filing_type}/{companyInfoTuple[3]}/{filing}"
+    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
     p = Path(path)
     p.mkdir(parents=True, exist_ok=True)
     
     html_name = f"{filing_type}_filling"
     open(f'{p}/{html_name}_direct_save.html', 'wb').write(html_file.content)
-    print(f"\n\n *******************  {p}/{html_name}_direct_save.pdf'  ********************* \n\n")
 
     return f'{p}/{html_name}_direct_save.html'
 
@@ -173,8 +170,7 @@ class helper:
 
     def process_13f_hr(self, filingFile, companyInfoTuple):
         #TODO: fix AttributeError: 'SecAPI' object has no attribute 'content'
-        #need to pass sec API
-        pass
+        #need to pass sec API 
         pattern = b'<(.*?)informationTable\s|<informationTable'
         matchInformationTableStart = re.search(pattern, filingFile.content)
 
@@ -726,18 +722,33 @@ class helper:
                     #TODO: make pdfkit turn html file on local to pdf on local and include
                     #it in requirements
                     filePath = html_save(file, companyInfoTuple, file_url)
-                    
-                    filing_type = companyInfoTuple[1].replace("/", "")
                     filing = companyInfoTuple[2].replace("/", "")
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
-                        {filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    pdfkit.from_file(filePath, "filePath", verbose=True, options={"enable-local-file-access": True})
+                   
+                    #TODO: possible css input to zoom out
+                    #pdfkit.from_file(filePath, f"{filing}.pdf", options={"enable-local-file-access": True})
                     
                 elif '.htm' in file['name']:
-                    download_htm_files(file, companyInfoTuple, file_url)
-                    html_save(file, companyInfoTuple, file_url)
+                    #download_htm_files(file, companyInfoTuple, file_url)
+                    #filePath = html_save(file, companyInfoTuple, file_url)
+                    #print(f"\n*********** filePath = {filePath} ********** \n")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    #filePath = filePath.replace(" ", "")
+                    
+                    
+                    options = {
+                        'page-size' : 'Letter',
+                        'encoding' : "UTF-8",
+                    }
+                    
+                    #pdfkit.from_file(filePath, f"{filing}.pdf", verbose=False, options=options)
+                    pdf = pdfkit.from_url(file_url, output_path= f"/home/max/MntStn/Apps/Collection/src/resources/testOut.pdf")
+                    
+                    #print(f"\n*********** filePath = {filePath} ********** \n")
+                    print(f"\n*********** fileURL = {file_url} ********** \n")
+                    
+                    
+                    
+                    time.sleep(90)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \
@@ -747,7 +758,7 @@ class helper:
             except Exception as e:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
-                time.sleep(10)
+                time.sleep(2)
                 
     def process_untracked(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

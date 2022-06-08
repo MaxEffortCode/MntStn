@@ -11,6 +11,8 @@ import pandas as pd
 import weasyprint
 from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 
+import pdfkit
+
 from Apps.Collection.src.api.sec_api import SecAPI
 from IPython.display import display
 from bs4 import BeautifulSoup, Doctype
@@ -31,17 +33,20 @@ def download_htm_files(file, companyInfoTuple, file_url):
                 {filing_type}/{companyInfoTuple[3]}/{filing}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
-            html_to_pdf(file_url, p, f"{filing_type}_filling")
+            filePath = html_to_pdf(file_url, p, f"{filing_type}_filling")
             time.sleep(1/10)
+            
+            return filePath
         
         else:
-            return
+            return None
     
     except Exception as e:
             print(f"failed on {file_url}\n\
                 with error: {e}")
             time.sleep(10)
-    pass
+            return None
+        
 
 def download_pdf_files(file, companyInfoTuple, file_url):
     try:
@@ -53,11 +58,12 @@ def download_pdf_files(file, companyInfoTuple, file_url):
                 {filing_type}/{companyInfoTuple[3]}/{filing}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
-            pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
+            filePath = pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
             time.sleep(1/10)
+            return filePath
         
         else:
-            return
+            return None
 
     except Exception as e:
         print(f"failed on {file_url}\n\
@@ -70,6 +76,8 @@ def pdf_dowload_from_url(url, path, pdf_name):
     with open(f'{path}/{pdf_name}.pdf', 'wb') as fd:
         for chunk in the_damn_pdf.iter_content(2048):
             fd.write(chunk)
+    
+    return f'{path}/{pdf_name}.pdf'
 
 def html_save(file, companyInfoTuple, file_url):
     secApi = SecAPI()
@@ -85,14 +93,15 @@ def html_save(file, companyInfoTuple, file_url):
     html_name = f"{filing_type}_filling"
     open(f'{p}/{html_name}_direct_save.html', 'wb').write(html_file.content)
     print(f"\n\n *******************  {p}/{html_name}_direct_save.pdf'  ********************* \n\n")
-    time.sleep(100)
 
+    return f'{p}/{html_name}_direct_save.html'
 
 
 def html_to_pdf(url, path, pdf_name):
     pdf = weasyprint.HTML(url).write_pdf()
     open(f'{path}/{pdf_name}.pdf', 'ab').write(pdf)
-
+    
+    return f'{path}/{pdf_name}.pdf'
 
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
@@ -163,7 +172,9 @@ class helper:
         writer.writerow(line)
 
     def process_13f_hr(self, filingFile, companyInfoTuple):
-
+        #TODO: fix AttributeError: 'SecAPI' object has no attribute 'content'
+        #need to pass sec API
+        pass
         pattern = b'<(.*?)informationTable\s|<informationTable'
         matchInformationTableStart = re.search(pattern, filingFile.content)
 
@@ -615,11 +626,11 @@ class helper:
             except TypeError:
                 logger.error(
                     f"Failed to concatenate str probs cause its <nonetype> \n")
-                time.sleep(1)
+                time.sleep(1/10)
 
             except:
                 logger.error(f"http 404 not found \n")
-                time.sleep(1)
+                time.sleep(1/10)
 
         return
 
@@ -712,8 +723,18 @@ class helper:
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
-                    html_save(file, companyInfoTuple, file_url)
-                
+                    #TODO: make pdfkit turn html file on local to pdf on local and include
+                    #it in requirements
+                    filePath = html_save(file, companyInfoTuple, file_url)
+                    
+                    filing_type = companyInfoTuple[1].replace("/", "")
+                    filing = companyInfoTuple[2].replace("/", "")
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
+                        {filing_type}/{companyInfoTuple[3]}/{filing}"
+                    p = Path(path)
+                    p.mkdir(parents=True, exist_ok=True)
+                    pdfkit.from_file(filePath, "filePath", verbose=True, options={"enable-local-file-access": True})
+                    
                 elif '.htm' in file['name']:
                     download_htm_files(file, companyInfoTuple, file_url)
                     html_save(file, companyInfoTuple, file_url)
@@ -736,14 +757,15 @@ class helper:
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
-                    html_save(file, companyInfoTuple, file_url)
-                
+                    
                 elif '.htm' in file['name']:
                     download_htm_files(file, companyInfoTuple, file_url)
-                    html_save(file, companyInfoTuple, file_url)
+                    logger.info(msg = f"Saved '.htm' as '.pdf': {file['name']}\n \
+                        at url: {file_url}")
 
                 else:
-                    print(f"didnt attempt to download: {file['name']}\n \
+                    html_save(file, companyInfoTuple, file_url)
+                    logger.info(msg = f"Saved {file['name']} as '.html'\n \
                         at url: {file_url}")
                     time.sleep(1/10)
                 

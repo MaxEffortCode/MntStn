@@ -5,39 +5,17 @@ import itertools
 import pandas as pd
 from os.path import exists
 
+sec_Api = SecAPI()
+
 # I think that we should expand this later to do larger date range of forms
 # We may learn that standardizations of forms change through out years
 # and that in the future if they change, these tests will catch them and tell us
-
-sec_Api = SecAPI()
-
 years = ["2020", "2021"]
 quarters = ["1", "2", "3", "4"]
 
-response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
-edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
-
 #
-# Helper methods below for tests
-# ===================================================================
-def get_company_info_tuple_by_filing_type(filing_type):
-    # "/home/max/MntStn/Apps/Collection/src/resources/edgar-full-index-archives/master-2022-QTR1-test.txt"
-    with open(edgarIndexFilePath) as file:
-        for line in itertools.islice(file, 11, None):
-            # 914208|Invesco Ltd.|3|2022-02-10|edgar/data/914208/0001209191-22-008399.txt
-            splitLineCompanyInfo = line.strip().split("|")
-            filing_url = splitLineCompanyInfo[4]
-            companyName = splitLineCompanyInfo[1].strip()
-            companyName = companyName.replace(',', '')
-            companyName = companyName.replace(' ', '-')
-            companyFiling = splitLineCompanyInfo[2]
-            list_of_filing_tuples = []
-            if companyFiling == filing_type:
-                companyInfoTuple = (companyName, companyFiling, qtr, yr, filing_url)
-                list_of_filing_tuples.append(companyInfoTuple)
-    
-    return list_of_filing_tuples
-
+# START Helper methods below for tests
+# ================================================================================
 def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePath, qtr, yr):
     with open(edgarIndexFilePath, "r") as file:
         for line in itertools.islice(file , 11, None): # TODO: find out if all edgar master index files start reporting companies on this line
@@ -73,8 +51,10 @@ def get_company_info_tuple(filePathName, splitLineCompanyInfo):
 	companyFiling = splitLineCompanyInfo[2]
 	companyInfoTuple = (companyName, companyFiling, qtr, yr)
 	return companyInfoTuple
-                
-# ===================================================================       
+               
+#
+# END Helper methods below for tests
+# ================================================================================
 
 def test_download_edgar_index_file_and_get_path():
     qtr = "1"
@@ -101,7 +81,7 @@ def test_process_13f_hr():
             # {os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
             # {os.path.dirname(__file__)} resorts to MntStn/Apps/Collection/src/ ... 
             # I am hoping since helper() gets created within a diff directory, the dunder variable will instead create the file under
-            # MntStn/Apps/Collection/tests so that we can test this file
+            # MntStn/Apps/Collection/tests bc it's calling it so that we can test this file
             helper().process_13f_hr(filingFile, companyInfoTuple)
             file_path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
             assert(os.path.exists(file_path))
@@ -118,34 +98,6 @@ def test_process_13f_hr():
             
             print("\n\nData Frame Checking For Null Values")
             print(dataFrame.isna())
-    
-#this... this needs to be fixed
-def test_download_htm_files():
-    companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
-    filingFile = []
-    for fileDir in companyInfoTuplePlusUrl:
-        filingFile.append(fileDir[4])
-    
-    for filingDirUrl in filingFile:
-        fileDirToTest = sec_Api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
-        for file in fileDirToTest.json()['directory']['item']:
-            file_url = sec_Api.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                        "/" + file['name']
-            if '.htm' in file['name']:
-                    download_htm_files(file, companyInfoTuplePlusUrl, file_url)
-                    filing_type = companyInfoTuplePlusUrl[1].replace("/", "")
-                    filing = companyInfoTuplePlusUrl[2].replace("/", "")
-                    assert exists(f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuplePlusUrl[0]}/filings/\
-                        {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
-    
-    assert(True)
-    
-def test_download_pdf_files():
-    assert False
-
-def test_pdf_dowload_from_url():
-    assert False
 
 def test_html_to_pdf():
     assert False
@@ -179,6 +131,34 @@ def test_process_24F2NT():
 
 def test_process_497():
     assert False
+
+def test_download_pdf_files():
+    assert False
+
+def test_pdf_dowload_from_url():
+    assert False
+
+#this... this needs to be fixed
+def test_download_htm_files():
+    companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
+    filingFile = []
+    for fileDir in companyInfoTuplePlusUrl:
+        filingFile.append(fileDir[4])
+    
+    for filingDirUrl in filingFile:
+        fileDirToTest = sec_Api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
+        for file in fileDirToTest.json()['directory']['item']:
+            file_url = sec_Api.baseUrl + \
+                        filingFile.json()['directory']['name'] + \
+                        "/" + file['name']
+            if '.htm' in file['name']:
+                    download_htm_files(file, companyInfoTuplePlusUrl, file_url)
+                    filing_type = companyInfoTuplePlusUrl[1].replace("/", "")
+                    filing = companyInfoTuplePlusUrl[2].replace("/", "")
+                    assert exists(f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuplePlusUrl[0]}/filings/\
+                        {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
+    
+    assert(True)
 
 def test_process_untracked():
     assert False

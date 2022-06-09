@@ -2,6 +2,7 @@ from Apps.Collection.src.helper import *
 from Apps.Collection.src.helper import helper
 from Apps.Collection.src.api.sec_api import SecAPI
 import itertools
+import pandas as pd
 from os.path import exists
 
 # I think that we should expand this later to do larger date range of forms
@@ -97,6 +98,20 @@ def test_process_13f_hr():
             helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
             file_path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
             assert(os.path.exists(file_path))
+            
+            dataFrame = pd.read_csv(file_path)
+            print("Data Frame")
+            print(dataFrame)
+            
+            print("\n\nData Frame Total Columns")
+            print(dataFrame.shape[1])
+            
+            print("\n\nData Frame Column Names")
+            print(dataFrame.columns)
+            
+            print("\n\nData Frame Checking For Null Values")
+            print(dataFrame.isna())
+            
     
 #this... this needs to be fixed
 def test_download_htm_files():

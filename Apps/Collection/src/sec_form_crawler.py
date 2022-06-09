@@ -111,14 +111,13 @@ with open(edgarIndexFilePath) as file:
             fileCounter11k += 1
 
         elif(companyFiling == "13F-HR"):
-            #TODO: fix secApi error check the functino call to helper.process_13f_hr
             continue
             companyInfoTuple = (companyName, companyFiling, qtr, yr)
             fileCounter13fhr += 1
             logger.info(f"Processing 13F-HR for : {companyName}\n")
             filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
             time.sleep(1/10)
-            helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
+            helper().process_13f_hr(filingFile, companyInfoTuple)
 
         #work in progress by RG
         elif(companyFiling == "13F-HR/A"):

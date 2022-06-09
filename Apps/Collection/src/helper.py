@@ -29,8 +29,7 @@ def download_htm_files(file, companyInfoTuple, file_url):
         if '.htm' in file['name']:
             filing_type = companyInfoTuple[1].replace("/", "")
             filing = companyInfoTuple[2].replace("/", "")
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
-                {filing_type}/{companyInfoTuple[3]}/{filing}"
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             filePath = html_to_pdf(file_url, p, f"{filing_type}_filling")
@@ -54,8 +53,7 @@ def download_pdf_files(file, companyInfoTuple, file_url):
         if '.pdf' in file['name']:
             filing_type = companyInfoTuple[1].replace("/", "")
             filing = companyInfoTuple[2].replace("/", "")
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/\
-                {filing_type}/{companyInfoTuple[3]}/{filing}"
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             filePath = pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
@@ -102,9 +100,8 @@ def html_to_pdf(url, path, pdf_name):
 
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
-        edgarIndexFileDownloadPath = f"{os.path.dirname(__file__)}\\resources\edgar-full-index-archives\master-{year}-QTR{qtr}.txt"
-        logger.info(
-            f"Downloading the master Edgar Index File to: {edgarIndexFileDownloadPath}")
+        edgarIndexFileDownloadPath = f"{os.path.dirname(__file__)}/resources/edgar-full-index-archives/master-{year}-QTR{qtr}.txt"
+        logger.info(f"Downloading the master Edgar Index File to: {edgarIndexFileDownloadPath}")
 
         with open(edgarIndexFileDownloadPath, "wb") as f:
             f.write(response.content)
@@ -112,9 +109,7 @@ class helper:
             try:
                 os.remove(edgarIndexFileDownloadPath)
             except OSError as e:
-                logger.info(
-                    "Error downloading and processing the Edgar Index file - rerun as it now most likely contains corrupted data: %s - %s." % (e.filename, e.strerror))
-
+                logger.info("Error downloading and processing the Edgar Index file - rerun as it now most likely contains corrupted data: %s - %s." % (e.filename, e.strerror))
         return edgarIndexFileDownloadPath
 
     def process_13f_hr_subtree(self, subtree, writer):
@@ -692,8 +687,7 @@ class helper:
     def process_24F2NT(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                        "/" + file['name']
+                        filingFile.json()['directory']['name'] + "/" + file['name']
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
@@ -702,20 +696,17 @@ class helper:
                     download_htm_files(file, companyInfoTuple, file_url)
 
                 else:
-                    print(f"didnt attempt to download: {file['name']}\n \
-                        at url: {file_url}")
+                    print(f"didnt attempt to download: {file['name']}\n at url: {file_url}")
                     time.sleep(1/10)
                 
             except Exception as e:
-                print(f"failed on {file_url}\n\
-                    with error: {e}")
+                print(f"failed on {file_url}\n with error: {e}")
                 time.sleep(10)   
     
     def process_497(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                        "/" + file['name']
+                        filingFile.json()['directory']['name'] + "/" + file['name']
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
@@ -763,21 +754,18 @@ class helper:
     def process_untracked(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
             file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                        "/" + file['name']
+                        filingFile.json()['directory']['name'] + "/" + file['name']
             try:
                 if '.pdf' in file['name']:
                     download_pdf_files(file, companyInfoTuple, file_url)
                     
                 elif '.htm' in file['name']:
                     download_htm_files(file, companyInfoTuple, file_url)
-                    logger.info(msg = f"Saved '.htm' as '.pdf': {file['name']}\n \
-                        at url: {file_url}")
+                    logger.info(msg = f"Saved '.htm' as '.pdf': {file['name']}\n at url: {file_url}")
 
                 else:
                     html_save(file, companyInfoTuple, file_url)
-                    logger.info(msg = f"Saved {file['name']} as '.html'\n \
-                        at url: {file_url}")
+                    logger.info(msg = f"Saved {file['name']} as '.html'\n at url: {file_url}")
                     time.sleep(1/10)
                 
             except Exception as e:

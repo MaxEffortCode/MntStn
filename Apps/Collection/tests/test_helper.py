@@ -34,6 +34,22 @@ def get_company_info_tuple_by_filing_type(filing_type):
                 list_of_filing_tuples.append(companyInfoTuple)
     
     return list_of_filing_tuples
+
+def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePath, qtr, yr) {
+    with open(edgarIndexFilePath, "r") as file:
+        for line in itertools.islice(file , 11, None): # TODO: find out if all edgar master index files start reporting companies on this line
+            lines = file.readLines()
+    
+    edgarIndexFilePathForSingleForm = f"{os.path.dirname(__file__)}/resources/edgar-archives-{form.replace("/", "")}/{year}-QTR{qtr}.txt"
+    with open(edgarIndexFilePathForSingleForm, "w") as file:
+        for line in lines:
+            splitLineCompanyInfo = line.strip("\n").split("|")
+            companyFiling = splitLineCompanyInfo[2]
+            if(companyFiling == form):
+                file.write(line)
+    file.close()
+    return file
+}
                 
 # ===================================================================       
 

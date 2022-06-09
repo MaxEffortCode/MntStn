@@ -37,7 +37,7 @@ def get_company_info_tuple_by_filing_type(filing_type):
     
     return list_of_filing_tuples
 
-def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePath, qtr, yr) {
+def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePath, qtr, yr):
     with open(edgarIndexFilePath, "r") as file:
         for line in itertools.islice(file , 11, None): # TODO: find out if all edgar master index files start reporting companies on this line
             lines = file.readLines()
@@ -51,34 +51,16 @@ def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePa
                 file.write(line)
     file.close()
     return edgarIndexFilePathForSingleForm
-}
 
-def z() {
-    filingForm = "13F-HR"
-    quarterly13fFilePaths = []
+def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingFormName):
+    quarterlyEdgarIndexFilePathsForSingleFilingFormList = []
     for yr in years:
-        for qtr in quarters:
-            response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
-            edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
-            quarterly13fFormPath = get_quarterly_edgar_index_file_for_single_filing_form(filingForm, edgarIndexFilePath, qtr, yr)
-            quarterly13fFilePaths.append(quarterly13fFormPath)
-    
-    for quarterly13fFormPath in quarterly13fFilePaths:
-        with open(quarterly13fFormPath) as file:
-            splitLineCompanyInfo = line.strip("\n").split("|")
-            companyName = splitLineCompanyInfo[1].strip()
-            companyName = companyName.replace(',', '')
-            companyName = companyName.replace(' ', '-')
-            companyFiling = splitLineCompanyInfo[2]
-            companyInfoTuple = (companyName, companyFiling, qtr, yr)
-    
-            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
-            assert(response.status_code == 200)
-            time.sleep(1/10)
-            #processed13fFilePath = helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
-            #This should create a file in {os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
-            assert(os.path.exists(file_path))
-}
+    for qtr in quarters:
+        response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+        edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+        quarterlyFormPath = get_quarterly_edgar_index_file_for_single_filing_form(filingFormName, edgarIndexFilePath, qtr, yr)
+        quarterlyEdgarIndexFilePathsForSingleFilingFormList.append(quarterlyFormPath)
+    return quarterlyEdgarIndexFilePathsForSingleFilingFormList
                 
 # ===================================================================       
 
@@ -90,6 +72,32 @@ def test_download_edga_index_file_and_get_path():
     edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
     assert(type(edgarIndexFilePath) == str)
 
+def test_process_13f_hr():
+    filingForm = "13F-HR"
+    quarterly13fFilePathList = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    
+    for quarterly13fFormPath in quarterly13fFilePathList:
+        with open(quarterly13fFormPath) as file:
+            splitLineCompanyInfo = line.strip("\n").split("|")
+            companyName = splitLineCompanyInfo[1].strip()
+            companyName = companyName.replace(',', '')
+            companyName = companyName.replace(' ', '-')
+            companyFiling = splitLineCompanyInfo[2]
+            companyInfoTuple = (companyName, companyFiling, qtr, yr)
+    
+            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
+            assert(response.status_code == 200)
+            time.sleep(1/10)
+            
+            # When sec_form_crawler processes 13f and calls the below line of code
+            # {os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
+            # {os.path.dirname(__file__)} resorts to MntStn/Apps/Collection/src/ ... 
+            # I am hoping since helper() gets created within a diff directory, the dunder variable will instead create the file under
+            # MntStn/Apps/Collection/tests so that we can test this file
+            helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
+            file_path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
+            assert(os.path.exists(file_path))
+    
 #this... this needs to be fixed
 def test_download_htm_files():
     companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
@@ -119,9 +127,6 @@ def test_pdf_dowload_from_url():
     assert False
 
 def test_html_to_pdf():
-    assert False
-
-def test_process_13f_hr():
     assert False
 
 def test_process_11k():

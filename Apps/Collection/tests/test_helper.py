@@ -9,8 +9,10 @@ from os.path import exists
 # and that in the future if they change, these tests will catch them and tell us
 
 sec_Api = SecAPI()
-yr = '2022'
-qtr = '1'
+
+years = ["2020", "2021"]
+quarters = ["1", "2", "3", "4"]
+
 response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
 edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
 
@@ -48,13 +50,44 @@ def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePa
             if(companyFiling == form):
                 file.write(line)
     file.close()
-    return file
+    return edgarIndexFilePathForSingleForm
+}
+
+def z() {
+    filingForm = "13F-HR"
+    quarterly13fFilePaths = []
+    for yr in years:
+        for qtr in quarters:
+            response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+            edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+            quarterly13fFormPath = get_quarterly_edgar_index_file_for_single_filing_form(filingForm, edgarIndexFilePath, qtr, yr)
+            quarterly13fFilePaths.append(quarterly13fFormPath)
+    
+    for quarterly13fFormPath in quarterly13fFilePaths:
+        with open(quarterly13fFormPath) as file:
+            splitLineCompanyInfo = line.strip("\n").split("|")
+            companyName = splitLineCompanyInfo[1].strip()
+            companyName = companyName.replace(',', '')
+            companyName = companyName.replace(' ', '-')
+            companyFiling = splitLineCompanyInfo[2]
+            companyInfoTuple = (companyName, companyFiling, qtr, yr)
+    
+            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
+            assert(response.status_code == 200)
+            time.sleep(1/10)
+            #processed13fFilePath = helper.process_13f_hr(filingFile, sec_Api, companyInfoTuple)
+            #This should create a file in {os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
+            assert(os.path.exists(file_path))
 }
                 
 # ===================================================================       
 
-def test_downloadEdgarIndexFileAndGetPath():
+def test_download_edga_index_file_and_get_path():
+    qtr = "1"
+    yr = "2022"
+    response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
     assert(response.status_code == 200)
+    edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
     assert(type(edgarIndexFilePath) == str)
 
 #this... this needs to be fixed

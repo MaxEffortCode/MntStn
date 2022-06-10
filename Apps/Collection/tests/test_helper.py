@@ -4,100 +4,116 @@ from Apps.Collection.src.api.sec_api import SecAPI
 import itertools
 import pandas as pd
 from os.path import exists
+from pathlib import Path
+import shutil
+import pytest
 
-sec_Api = SecAPI()
+sec_api = SecAPI()
 
 # I think that we should expand this later to do larger date range of forms
 # We may learn that standardizations of forms change through out years
 # and that in the future if they change, these tests will catch them and tell us
-years = ["2020", "2021"]
-quarters = ["1", "2", "3", "4"]
+years = ["2020"]
+quarters = ["1"]
 
 #
-# START Helper methods below for tests
+# Helper methods below for tests
 # ================================================================================
-def get_quarterly_edgar_index_file_for_single_filing_form(form, edgarIndexFilePath, qtr, yr):
-    with open(edgarIndexFilePath, "r") as file:
-        for line in itertools.islice(file , 11, None): # TODO: find out if all edgar master index files start reporting companies on this line
-            lines = file.readLines()
+# 
+def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file_path, qtr, yr):
+    with open(edgar_index_file_path, "r") as file:
+        for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
+            lines = file.readlines()
             
-    edgarIndexFilePathForSingleForm = f"{os.path.dirname(__file__)}/resources/edgar-archives/{year}/{qtr}/{form.replace("/", "")}.txt"
-    with open(edgarIndexFilePathForSingleForm, "w") as file:
+    temp_form_name = form.replace("/", "")
+    temp_form_name = temp_form_name.replace(',', '')
+    temp_form_name = temp_form_name.replace(' ', '-')
+
+    path = f"{os.path.dirname(__file__)}/resources/edgar-archives/{yr}/{qtr}"
+    p = Path(path)
+    p.mkdir(parents=True, exist_ok=True)
+    new_path = f"{path}/all-companies-with-{temp_form_name}-filings.csv"
+
+    with open(new_path, "w+") as file:
         for line in lines:
-            splitLineCompanyInfo = line.strip("\n").split("|")
-            companyFiling = splitLineCompanyInfo[2]
-            if(companyFiling == form):
+            split_line_company_info = line.strip("\n").split("|")
+            company_filing = split_line_company_info[2]
+            if(company_filing == form):
                 file.write(line)
     file.close()
-    return edgarIndexFilePathForSingleForm
+    return new_path
 
-def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingFormName):
-    quarterlyEdgarIndexFilePathsForSingleFilingFormList = []
+def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form_name):
+    quarterly_edgar_index_file_paths_for_single_filing_form_list = []
     for yr in years:
-    for qtr in quarters:
-        response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
-        edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
-        quarterlyFormPath = get_quarterly_edgar_index_file_for_single_filing_form(filingFormName, edgarIndexFilePath, qtr, yr)
-        quarterlyEdgarIndexFilePathsForSingleFilingFormList.append(quarterlyFormPath)
-    return quarterlyEdgarIndexFilePathsForSingleFilingFormList
+        for qtr in quarters:
+            response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+            edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+            quarterly_form_path = get_quarterly_edgar_index_file_for_single_filing_form(filing_form_name, edgar_index_file_path, qtr, yr)
+            quarterly_edgar_index_file_paths_for_single_filing_form_list.append(quarterly_form_path)
+    return quarterly_edgar_index_file_paths_for_single_filing_form_list
 
-def get_company_info_tuple(filePathName, splitLineCompanyInfo):
-    year = filePathName.split('/')[-3]
-	qtr = filePathName.split('/')[-2]	
-	splitLineCompanyInfo = companyInfoLine.strip("\n").split("|")
-	companyName = splitLineCompanyInfo[1].strip()
-	companyName = companyName.replace(',', '')
-	companyName = companyName.replace(' ', '-')
-	companyFiling = splitLineCompanyInfo[2]
-	companyInfoTuple = (companyName, companyFiling, qtr, yr)
-	return companyInfoTuple
+def get_company_info_tuple(file_path_name, line):
+    yr = file_path_name.split('/')[-3]
+    qtr = file_path_name.split('/')[-2]
+    split_line_company_info = line.strip("\n").split("|")
+    company_name = split_line_company_info[1].strip()
+    company_name = company_name.replace(',', '')
+    company_name = company_name.replace(' ', '-')
+    company_filing = split_line_company_info[2]
+
+    company_info_tuple = (company_name, company_filing, qtr, yr, split_line_company_info)
+    return company_info_tuple
                
 #
-# END Helper methods below for tests
 # ================================================================================
+#
+
+# TODO: We should refactor our form generators to specify paths so that we can download to TEST folder
+# Traditionally in java, src folder is not for testing data and this is structued similar
+# Fixtures seem cool - pretty much Junit's version of setup/beforeEach annotation
+@pytest.fixture(autouse=True)
+def setup():
+    parent_path = Path(f"{os.path.dirname(__file__)}").parent
+    src_resources_path = f"{parent_path}/src/resources"
+
+    current_path = Path(f"{os.path.dirname(__file__)}")
+    test_resources_path = f"{current_path}/resources"
+
+    shutil.rmtree(src_resources_path)
+    shutil.rmtree(test_resources_path)
+    yield
 
 def test_download_edgar_index_file_and_get_path():
     qtr = "1"
     yr = "2022"
-    response = sec_Api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+    response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
     assert(response.status_code == 200)
     edgarIndexFilePath = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
     assert(type(edgarIndexFilePath) == str)
 
 def test_process_13f_hr():
     filingForm = "13F-HR"
-    quarterly13fFilePathList = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    quarterly_13f_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
     
-    for quarterly13fFormPath in quarterly13fFilePathList:
-        with open(quarterly13fFormPath) as file:
-            splitLineCompanyInfo = line.strip("\n").split("|")
-            companyInfoTuple = get_company_info_tuple(quarterly13fFormPath, splitLineCompanyInfo)
-    
-            filingFile = sec_Api.get13FHRFilingForCompanyApi(splitLineCompanyInfo)
-            assert(response.status_code == 200)
-            time.sleep(1/10)
-            
-            # When sec_form_crawler processes 13f and calls the below line of code
-            # {os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
-            # {os.path.dirname(__file__)} resorts to MntStn/Apps/Collection/src/ ... 
-            # I am hoping since helper() gets created within a diff directory, the dunder variable will instead create the file under
-            # MntStn/Apps/Collection/tests bc it's calling it so that we can test this file
-            helper().process_13f_hr(filingFile, companyInfoTuple)
-            file_path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
-            assert(os.path.exists(file_path))
-            
-            dataFrame = pd.read_csv(file_path)
-            print("Data Frame")
-            print(dataFrame)
-            
-            print("\n\nData Frame Total Columns")
-            print(dataFrame.shape[1])
-            
-            print("\n\nData Frame Column Names")
-            print(dataFrame.columns)
-            
-            print("\n\nData Frame Checking For Null Values")
-            print(dataFrame.isna())
+    for quarterly_13f_form_path in quarterly_13f_file_path_list:
+        with open(quarterly_13f_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_13f_form_path, line)
+
+                response = sec_api.get13FHRFilingForCompanyApi(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+
+                file_path = helper().process_13f_hr(response, company_info_tuple)
+                assert(os.path.exists(file_path))
+                           
+                df = pd.read_csv(file_path)
+                columnNames = ['nameOfIssuer','cusip','value','shares','sshPrnamtType','putCall','investmentDiscretion','otherManager','soleVotingAuthority','sharedVotingAuthority','noneVotingAuthority']
+                
+                assert(df.shape[1] == 11) # Check data frame headers
+                assert(set(columnNames).issubset(df.columns)) # Check data frame Column Names
+                assert(len(df.columns) != 0) # Check not empty
 
 def test_html_to_pdf():
     assert False
@@ -138,6 +154,7 @@ def test_download_pdf_files():
 def test_pdf_dowload_from_url():
     assert False
 
+
 #this... this needs to be fixed
 def test_download_htm_files():
     companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
@@ -146,9 +163,9 @@ def test_download_htm_files():
         filingFile.append(fileDir[4])
     
     for filingDirUrl in filingFile:
-        fileDirToTest = sec_Api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
+        fileDirToTest = sec_api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
         for file in fileDirToTest.json()['directory']['item']:
-            file_url = sec_Api.baseUrl + \
+            file_url = sec_api.baseUrl + \
                         filingFile.json()['directory']['name'] + \
                         "/" + file['name']
             if '.htm' in file['name']:
@@ -160,5 +177,11 @@ def test_download_htm_files():
     
     assert(True)
 
-def test_process_untracked():
-    assert False
+def untracked_files():
+    path = f"{os.path.dirname(__file__)}/resources/untracked_files" 
+    #f = open(f"{path}/untracked_filing_types.txt", "r")
+    with open(f"{path}/untracked_filing_types.txt") as file:
+        if file_type not in file.read().splitlines():
+            file = open(f"{path}/untracked_filing_types.txt", "a")
+            file.write(f"{file_type}\n")
+        file.close()

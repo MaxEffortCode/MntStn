@@ -1,18 +1,17 @@
 import csv
-from distutils.log import debug
-from fileinput import filename
 import re
 import os
-from shutil import ExecError
 import time
 import xml.etree.ElementTree as ET
-from click import secho
 import pandas as pd
 import weasyprint
-from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
-
 import pdfkit
 
+from shutil import ExecError
+from click import secho
+from distutils.log import debug
+from fileinput import filename
+from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 from Apps.Collection.src.api.sec_api import SecAPI
 from IPython.display import display
 from bs4 import BeautifulSoup, Doctype
@@ -20,9 +19,7 @@ from Settings.setup_logger import logging
 from pathlib import Path
 from urllib.request import urlretrieve, build_opener, install_opener
 
-
 logger = logging.getLogger(__name__)
-
 
 def download_htm_files(file, companyInfoTuple, file_url):
     try:
@@ -100,7 +97,11 @@ def html_to_pdf(url, path, pdf_name):
 
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
-        edgarIndexFileDownloadPath = f"{os.path.dirname(__file__)}/resources/edgar-full-index-archives/master-{year}-QTR{qtr}.txt"
+        path = f"{os.path.dirname(__file__)}/resources/edgar-full-index-archives"
+        p = Path(path)
+        p.mkdir(parents=True, exist_ok=True)
+
+        edgarIndexFileDownloadPath = f"{path}/master-{year}-QTR{qtr}.txt"
         logger.info(f"Downloading the master Edgar Index File to: {edgarIndexFileDownloadPath}")
 
         with open(edgarIndexFileDownloadPath, "wb") as f:
@@ -190,6 +191,7 @@ class helper:
                 writer.writerow(headerLine)
                 for child in root:
                     self.process_13f_hr_subtree(child, writer)
+        return newPath
 
     # TODO make clean
     def process_11k(filingFile, secApi, companyInfoTuple):

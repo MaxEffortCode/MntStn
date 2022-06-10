@@ -15,6 +15,7 @@ class SecAPI:
         self.baseUrl = ("https://www.sec.gov")
         # Current max request rate: 10 requests/second per SEC - https://www.sec.gov/os/accessing-edgar-data 
 
+    # This obtains a giant list via SEC API with ALL company filings from the given qtr and year
     def getMasterEdgarIndexFileByQtrAndYrApi(self, qtrNumber, year):
         url = f"{self.baseUrl}/Archives/edgar/full-index/{year}/QTR{qtrNumber}/master.idx"
         response = requests.get(url, headers=self.header)  

@@ -165,8 +165,6 @@ class helper:
         writer.writerow(line)
 
     def process_13f_hr(self, filingFile, companyInfoTuple):
-        #TODO: fix AttributeError: 'SecAPI' object has no attribute 'content'
-        #need to pass sec API 
         pattern = b'<(.*?)informationTable\s|<informationTable'
         matchInformationTableStart = re.search(pattern, filingFile.content)
 
@@ -226,10 +224,10 @@ class helper:
             time.sleep(10)
 
     def process_10k(filingFile, secApi, companyInfoTuple):
+        financialStatementList = []
         for file in filingFile.json()['directory']['item']:
             if file['name'] == 'FilingSummary.xml':
-                xmlSummary = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
+                xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
                 logger.info(f"Searching through: {xmlSummary}")
                 base_url = xmlSummary.replace('FilingSummary.xml', '')
                 content = secApi.get(xmlSummary).content
@@ -250,14 +248,15 @@ class helper:
                 statements_url = []
                 for report_dict in master_reports:
                     # short name html header
-                    item1 = r"Consolidated Balance Sheets"
-                    item2 = r"Consolidated Statements of Operations and Comprehensive Income (Loss)"
-                    item3 = r"Consolidated Statements of Operations"
-                    item4 = r"Consolidated Statement of Changes in Stockholders' Equity and Changes in Net Assets"
-                    item5 = r"Consolidated Statements of Stockholder's (Deficit) Equity"
+                    item1 = r"Consolidated Balance Sheets".lower()
+                    item2 = r"Consolidated Statements of Operations and Comprehensive Income (Loss)".lower()
+                    item3 = r"Consolidated Statements of Operations".lower()
+                    item4 = r"Consolidated Statement of Changes in Stockholders' Equity and Changes in Net Assets".lower()
+                    item5 = r"Consolidated Statements of Stockholder's (Deficit) Equity".lower()
                     report_list = [item1, item2, item3, item4, item5]
 
-                    if report_dict['name_short'] in report_list:
+                    #Some filing summaries have ^ but in ALL CAPS... they really need to standardize this shit
+                    if report_dict['name_short'].lower() in report_list:
                         statements_url.append(report_dict['url'])
 
                 statements_data = []
@@ -284,16 +283,10 @@ class helper:
                             statement_data['sections'].append(sec_row)
 
                         elif (len(row.find_all('th')) != 0):
-                            hed_row = [ele.text.strip()
-                                                      for ele in row.find_all('th')]
-                            logger.info(
-                                "\n================= statement_data INFORMATION =========\n")
-                            logger.info(f"statement_data")
+                            hed_row = [ele.text.strip() for ele in row.find_all('th')]
                             statement_data['headers'].append(hed_row)
-
                         else:
-                            logger.info(
-                                "Parsed an html file with a case we haven't handled yet.")
+                            logger.info("Parsed an html file with a case we haven't handled yet.")
 
                     statements_data.append(statement_data)
 
@@ -311,8 +304,7 @@ class helper:
 
                 headersOfFinancialStatementsColumnLengths = []
                 for index, headers in enumerate(headersOfFinancialStatements):
-                    headersOfFinancialStatementsColumnLengths.append(
-                        len(headers))
+                    headersOfFinancialStatementsColumnLengths.append(len(headers))
                 dataOfFinancialStatements = []
 
                 for index, dataNestedList in enumerate(allData):
@@ -332,8 +324,7 @@ class helper:
                         dataFrame.index = dataFrame[0]
 
                     except(KeyError):
-                        logger.info(
-                            f"Financial statement is empty.\nIgnoring and continuing on.\n")
+                        logger.info(f"Financial statement is empty.\nIgnoring and continuing on.\n")
                         continue
 
                     dataFrame.index.name = headersOfFinancialStatements[index][0]
@@ -344,8 +335,7 @@ class helper:
                     dataFrame = dataFrame.replace('[(]', '-', regex=True)
                     dataFrame = dataFrame.replace('', 'NaN', regex=True)
 
-                    dataFrame = dataFrame.loc[:, ~dataFrame.apply(
-                        lambda x: x.nunique() == 1 and x[0] == 'NaN', axis=0)]
+                    dataFrame = dataFrame.loc[:, ~dataFrame.apply(lambda x: x.nunique() == 1 and x[0] == 'NaN', axis=0)]
 
                     keyList = dataFrame.columns.values.tolist()
                     dict = {}
@@ -355,8 +345,7 @@ class helper:
 
                     dataFrame.rename(columns=dict, inplace=True)
 
-                    reportListName = headersOfFinancialStatements[index][0].strip(
-                    )
+                    reportListName = headersOfFinancialStatements[index][0].strip()
 
                     reportListName = re.sub('[\$,)(-]', '', reportListName)
                     reportListName = reportListName.replace(r'/', '')
@@ -367,8 +356,9 @@ class helper:
                     p = Path(path)
                     p.mkdir(parents=True, exist_ok=True)
 
-                    dataFrame.to_csv(
-                        f"{path}/{reportListName}.csv", index=True, header=True)
+                    dataFrame.to_csv(f"{path}/{reportListName}.csv", index=True, header=True)
+                    financialStatementList.append(f"{path}/{reportListName}.csv")
+        return financialStatementList
 
     def process_NT10k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

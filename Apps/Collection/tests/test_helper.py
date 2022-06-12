@@ -101,11 +101,34 @@ def test_process_13f_hr():
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_13f_form_path, line)
 
-                response = sec_api.get13FHRFilingForCompanyApi(company_info_tuple[4])
+                response = sec_api.get_13f_hr_filing_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
                 file_path = helper().process_13f_hr(response, company_info_tuple)
+                assert(os.path.exists(file_path))
+                           
+                df = pd.read_csv(file_path)
+                columnNames = ['nameOfIssuer','cusip','value','shares','sshPrnamtType','putCall','investmentDiscretion','otherManager','soleVotingAuthority','sharedVotingAuthority','noneVotingAuthority']
+                
+                assert(df.shape[1] == 11) # Check data frame headers
+                assert(set(columnNames).issubset(df.columns)) # Check data frame Column Names
+                assert(len(df.columns) != 0) # Check not empty
+
+def test_process_13f_hr_amendment():
+    filingForm = "13F-HR/A"
+    quarterly_13f_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    
+    for quarterly_13f_amendment_form_path in quarterly_13f_amendment_file_path_list:
+        with open(quarterly_13f_amendment_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_13f_amendment_form_path, line)
+
+                response = sec_api.get_13f_amendment_filing_for_company_api(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+
+                file_path = helper().process_13f_hr_amendment(response, company_info_tuple)
                 assert(os.path.exists(file_path))
                            
                 df = pd.read_csv(file_path)

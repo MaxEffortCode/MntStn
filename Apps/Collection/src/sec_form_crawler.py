@@ -13,6 +13,7 @@ years = ["2020"]
 quarters = ["1"]
 
 file_counter_13f_hr = 0
+file_counter_13f_hr_amendment = 0
 file_counter_10k = 0
 
 #
@@ -42,9 +43,15 @@ for yr in years:
                 if(company_info_tuple[1] == "13F-HR"):
                     file_counter_13f_hr += 1
                     logger.info(f"Processing 13F-HR for : {company_info_tuple[0]}\n")
-                    filing_response = sec_api.get13FHRFilingForCompanyApi(company_info_tuple[4])
+                    filing_response = sec_api.get_13f_hr_filing_for_company_api(company_info_tuple[4])
                     time.sleep(1/10)
                     helper().process_13f_hr(filing_response, company_info_tuple)
+                elif(company_info_tuple[1] == "13F-HR/A"):
+                    file_counter_13f_hr_amendment += 1
+                    logger.info(f"Processing 13F-HR/A for : {company_info_tuple[0]}\n")
+                    filing_response = sec_api.get_13f_amendment_filing_for_company_api(company_info_tuple[4])
+                    time.sleep(1/10)
+                    helper().get_13f_amendment_filing_for_company_api(filing_response, sec_api, company_info_tuple)
                 elif(company_info_tuple[1] == "10-K"):
                     file_counter_10k += 1
                     logger.info(f"Processing 10-K for : {company_info_tuple[0]}\n")
@@ -55,4 +62,5 @@ for yr in years:
                     continue
 
 logger.info("Processed " + str(file_counter_13f_hr) + " 13F-HR files in master file.")
+logger.info("Processed " + str(file_counter_13f_hr_amendment) + " 13F-HR/A files in master file.")
 logger.info("Processed " + str(file_counter_10k) + " 10-K files in master file.")

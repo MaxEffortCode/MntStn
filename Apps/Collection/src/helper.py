@@ -191,6 +191,35 @@ class helper:
                     self.process_13f_hr_subtree(child, writer)
         return newPath
 
+    # Will try to get back around to this later to get rid of duplicate code
+    # I think the time will be spent better elsewhere though for now
+    def process_13f_hr_amendment(self, filingFile, companyInfoTuple):
+        pattern = b'<(.*?)informationTable\s|<informationTable'
+        matchInformationTableStart = re.search(pattern, filingFile.content)
+
+        pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
+        match2InformationTableEnd = re.search(pattern2, filingFile.content)
+
+        fileByteString = filingFile.content[matchInformationTableStart.start(
+        ): match2InformationTableEnd.end()]
+        root = ET.fromstring(fileByteString.decode())
+
+        headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion",
+            "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
+
+        path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-amendment-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+        p = Path(path)
+        p.mkdir(parents=True, exist_ok=True)
+
+        newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-amendment-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-amendment-data.csv"
+
+        with open(newPath, 'w',  newline='') as out_file:
+                writer = csv.writer(out_file)
+                writer.writerow(headerLine)
+                for child in root:
+                    self.process_13f_hr_subtree(child, writer)
+        return newPath
+
     # TODO make clean
     def process_11k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

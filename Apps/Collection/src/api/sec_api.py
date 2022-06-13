@@ -28,12 +28,6 @@ class SecAPI:
         LOGGER.info(f"Performing GET on: {url}")
         return response
 
-    def get_13f_amendment_filing_for_company_api(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-
     def get10kFilingForCompanyApi(self, companyInfo):
         url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
         url = url.replace('-','').replace('.txt', '/index.json')

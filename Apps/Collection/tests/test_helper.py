@@ -13,6 +13,7 @@ sec_api = SecAPI()
 # I think that we should expand this later to do larger date range of forms
 # We may learn that standardizations of forms change through out years
 # and that in the future if they change, these tests will catch them and tell us
+# Anything longer than this can take a while for certain forms.
 years = ["2020"]
 quarters = ["1"]
 
@@ -93,8 +94,8 @@ def test_download_edgar_index_file_and_get_path():
     assert(type(edgarIndexFilePath) == str)
 
 def test_process_13f_hr():
-    filingForm = "13F-HR"
-    quarterly_13f_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    filing_form = "13F-HR"
+    quarterly_13f_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     
     for quarterly_13f_form_path in quarterly_13f_file_path_list:
         with open(quarterly_13f_form_path) as file:
@@ -116,19 +117,19 @@ def test_process_13f_hr():
                 assert(len(df.columns) != 0) # Check not empty
 
 def test_process_13f_hr_amendment():
-    filingForm = "13F-HR/A"
-    quarterly_13f_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    filing_form = "13F-HR/A"
+    quarterly_13f_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     
     for quarterly_13f_amendment_form_path in quarterly_13f_amendment_file_path_list:
         with open(quarterly_13f_amendment_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_13f_amendment_form_path, line)
 
-                response = sec_api.get_13f_amendment_filing_for_company_api(company_info_tuple[4])
+                response = sec_api.get_13f_hr_filing_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
-                file_path = helper().process_13f_hr_amendment(response, company_info_tuple)
+                file_path = helper().process_13f_hr(response, company_info_tuple)
                 assert(os.path.exists(file_path))
                            
                 df = pd.read_csv(file_path)
@@ -139,8 +140,8 @@ def test_process_13f_hr_amendment():
                 assert(len(df.columns) != 0) # Check not empty
 
 def test_process_10k():
-    filingForm = "10-K"
-    quarterly_10k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filingForm)
+    filing_form = "10-K"
+    quarterly_10k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     
     for quarterly_10k_form_path in quarterly_10k_file_path_list:
         with open(quarterly_10k_form_path) as file:
@@ -148,7 +149,25 @@ def test_process_10k():
                 company_info_tuple = get_company_info_tuple(quarterly_10k_form_path, line)
 
                 response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
-                print(response)
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+
+                file_paths = helper.process_10k(response, sec_api, company_info_tuple)
+                for path in file_paths:
+                    assert(os.path.exists(path)) # Check file exists
+                    df = pd.read_csv(path)
+                    assert(len(df.columns) != 0) # Check not empty
+
+def test_process_10k_amendment():
+    filing_form = "10-K/A"
+    quarterly_10k_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    
+    for quarterly_10k_amendment_form_path in quarterly_10k_amendment_file_path_list:
+        with open(quarterly_10k_amendment_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_10k_amendment_form_path, line)
+
+                response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 

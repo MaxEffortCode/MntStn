@@ -178,40 +178,14 @@ class helper:
         headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion",
             "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
 
-        path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+        company_filing = companyInfoTuple[1]
+        company_filing = company_filing.replace('/', '-')
+
+        path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
         p = Path(path)
         p.mkdir(parents=True, exist_ok=True)
 
-        newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-data.csv"
-
-        with open(newPath, 'w',  newline='') as out_file:
-                writer = csv.writer(out_file)
-                writer.writerow(headerLine)
-                for child in root:
-                    self.process_13f_hr_subtree(child, writer)
-        return newPath
-
-    # Will try to get back around to this later to get rid of duplicate code
-    # I think the time will be spent better elsewhere though for now
-    def process_13f_hr_amendment(self, filingFile, companyInfoTuple):
-        pattern = b'<(.*?)informationTable\s|<informationTable'
-        matchInformationTableStart = re.search(pattern, filingFile.content)
-
-        pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
-        match2InformationTableEnd = re.search(pattern2, filingFile.content)
-
-        fileByteString = filingFile.content[matchInformationTableStart.start(
-        ): match2InformationTableEnd.end()]
-        root = ET.fromstring(fileByteString.decode())
-
-        headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion",
-            "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
-
-        path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-amendment-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
-        p = Path(path)
-        p.mkdir(parents=True, exist_ok=True)
-
-        newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/13f-hr-amendment-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/13f-hr-amendment-data.csv"
+        newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{company_filing}-data.csv"
 
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
@@ -231,8 +205,7 @@ class helper:
                 continue
 
             end_bit_of_url = name
-            xmlSummary = secApi.baseUrl + \
-                filingFile.json()['directory']['name'] + "/" + file['name']
+            xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
             logger.info(f"Searching through: {xmlSummary}")
             base_url = xmlSummary.replace(name, '')
             content = secApi.get(xmlSummary).content
@@ -284,7 +257,8 @@ class helper:
                     item5 = r"Consolidated Statements of Stockholder's (Deficit) Equity".lower()
                     report_list = [item1, item2, item3, item4, item5]
 
-                    #Some filing summaries have ^ but in ALL CAPS... they really need to standardize this shit
+                    #Some filing summaries have ^ but in ALL CAPS... they really need to standardize
+                    # Also TODO: Add more items above, there are many financial statements we can grab from a 10k 
                     if report_dict['name_short'].lower() in report_list:
                         statements_url.append(report_dict['url'])
 
@@ -381,7 +355,10 @@ class helper:
                     reportListName = reportListName.replace('\\', '')
                     reportListName = reportListName.replace(' ', '-')
 
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/10-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                    company_filing = companyInfoTuple[1]
+                    company_filing = company_filing.replace('/', '-')
+
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
                     p = Path(path)
                     p.mkdir(parents=True, exist_ok=True)
 

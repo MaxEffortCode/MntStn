@@ -28,82 +28,12 @@ class SecAPI:
         LOGGER.info(f"Performing GET on: {url}")
         return response
 
-    def get10kFilingForCompanyApi(self, companyInfo):
+    # This is frequently used for most company fil-ing forms
+    def get_index_json_filing_response_for_company_api(self, companyInfo):
         url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
         url = url.replace('-','').replace('.txt', '/index.json')
         response = requests.get(url, headers=self.header)
         LOGGER.info(f"Performing GET on: {url}")
-        return response
-    
-    def get10KAFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-
-    def get10QFilingForCompanyApi(self, companyInfo):
-        #914208|Invesco Ltd.|3|2022-02-10|edgar/data/914208/0001209191-22-008399.txt
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-    
-    def get10NT10KFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-
-    def get4FilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-    
-    def get497FilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-    
-    def get4AFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-
-    def get8KFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing GET on: {url}")
-        return response
-    
-    def get11KFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing 11-k GET on: {url}")
-        return response
-    
-    def get24F2NTFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing 24F2NT GET on: {url}")
-        return response
-
-    def getUntrackedFilingForCompanyApi(self, companyInfo):
-        url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
-        url = url.replace('-','').replace('.txt', '/index.json')
-        response = requests.get(url, headers=self.header)
-        LOGGER.info(f"Performing Untracked GET on: {url}")
         return response
     
     def get(self, url):

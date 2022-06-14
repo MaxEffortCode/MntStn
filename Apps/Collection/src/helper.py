@@ -164,8 +164,7 @@ class helper:
                         otherManager = child.text
 
         nameOfIssuer = nameOfIssuer.replace(",", "")
-        line = [nameOfIssuer, cusip, value, shares, sshPrnamtType, putCall, investmentDiscretion,
-            otherManager, soleVotingAuthority, sharedVotingAuthority, noneVotingAuthority]
+        line = [nameOfIssuer, cusip, value, shares, sshPrnamtType, putCall, investmentDiscretion, otherManager, soleVotingAuthority, sharedVotingAuthority, noneVotingAuthority]
         writer.writerow(line)
 
     def process_13f_hr(self, filingFile, companyInfoTuple):
@@ -175,12 +174,10 @@ class helper:
         pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
         match2InformationTableEnd = re.search(pattern2, filingFile.content)
 
-        fileByteString = filingFile.content[matchInformationTableStart.start(
-        ): match2InformationTableEnd.end()]
+        fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
         root = ET.fromstring(fileByteString.decode())
 
-        headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion",
-            "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
+        headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion", "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
 
         company_filing = companyInfoTuple[1]
         company_filing = company_filing.replace('/', '-')
@@ -419,14 +416,15 @@ class helper:
                 time.sleep(10)
         return None
 
+    #
+    # 10-Q are basically quarterly 10Ks that include unaudited financial statements.
+    #
     def process_10q(filingFile, secApi, companyInfoTuple):
         financialStatementList = []
         for file in filingFile.json()['directory']['item']:
             # {'last-modified': '2022-02-09 09:00:46', 'name': 'FilingSummary.xml', 'type': 'text.gif', 'size': '34225'}
             if file['name'] == 'FilingSummary.xml':
-                xmlSummary = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
-                logger.info(f"Searching through: {xmlSummary}")
+                xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
                 base_url = xmlSummary.replace('FilingSummary.xml', '')
                 content = secApi.get(xmlSummary).content
                 soup = BeautifulSoup(content, 'lxml')
@@ -449,14 +447,14 @@ class helper:
 
                 for report_dict in master_reports:
                     # short name html header
-                    item1 = r"Consolidated Balance Sheets"
-                    item2 = r"Consolidated Statements of Operations and Comprehensive Income (Loss)"
-                    item3 = r"Consolidated Statements of Operations"
-                    item4 = r"Consolidated Statement of Changes in Stockholders' Equity and Changes in Net Assets"
-                    item5 = r"Consolidated Statements of Stockholder's (Deficit) Equity"
+                    item1 = r"Consolidated Balance Sheets".lower()
+                    item2 = r"Consolidated Statements of Operations and Comprehensive Income (Loss)".lower()
+                    item3 = r"Consolidated Statements of Operations".lower()
+                    item4 = r"Consolidated Statement of Changes in Stockholders' Equity and Changes in Net Assets".lower()
+                    item5 = r"Consolidated Statements of Stockholder's (Deficit) Equity".lower()
                     report_list = [item1, item2, item3, item4, item5]
 
-                    if report_dict['name_short'] in report_list:
+                    if report_dict['name_short'].lower() in report_list:
                         statements_url.append(report_dict['url'])
 
                 statements_data = []
@@ -482,11 +480,7 @@ class helper:
                             statement_data['sections'].append(sec_row)
 
                         elif (len(row.find_all('th')) != 0):
-                            hed_row = [ele.text.strip()
-                                                      for ele in row.find_all('th')]
-                            logger.info(
-                                "\n================= statement_data INFORMATION =========\n")
-                            logger.info(f"statement_data")
+                            hed_row = [ele.text.strip() for ele in row.find_all('th')]
                             statement_data['headers'].append(hed_row)
 
                         else:
@@ -511,8 +505,7 @@ class helper:
 
                 headersOfFinancialStatementsColumnLengths = []
                 for index, headers in enumerate(headersOfFinancialStatements):
-                    headersOfFinancialStatementsColumnLengths.append(
-                        len(headers))
+                    headersOfFinancialStatementsColumnLengths.append(len(headers))
                 dataOfFinancialStatements = []
 
                 for index, dataNestedList in enumerate(allData):
@@ -563,12 +556,14 @@ class helper:
                     reportListName = reportListName.replace('\\', '')
                     reportListName = reportListName.replace(' ', '-')
 
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/10-q-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                    company_filing = companyInfoTuple[1]
+                    company_filing = company_filing.replace('/', '-')
+
+                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
                     p = Path(path)
                     p.mkdir(parents=True, exist_ok=True)
 
-                    dataFrame.to_csv(
-                        f"{path}/{reportListName}.csv", index=True, header=True)
+                    dataFrame.to_csv(f"{path}/{reportListName}.csv", index=True, header=True)
                     
                     financialStatementList.append(f"{path}/{reportListName}.csv")
                     
@@ -583,8 +578,13 @@ class helper:
             file_path_extension = file['name']
             file_path_extension = file_path_extension.split('.')
             file_path_extension = file_path_extension[0]
+
+            # Some company filings have a forward slash like amendments
+            # Using a forward slash in path name will break and isn't allowed so change to -
+            company_filing = companyInfoTuple[1]
+            company_filing = company_filing.replace('/', '-')
             
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{file_path_extension}"
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{file_path_extension}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             try:
@@ -614,6 +614,7 @@ class helper:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
                 time.sleep(2)
+        return financialStatementList
 
     def process_4(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

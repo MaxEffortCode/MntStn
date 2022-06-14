@@ -81,8 +81,11 @@ def setup():
     current_path = Path(f"{os.path.dirname(__file__)}")
     test_resources_path = f"{current_path}/resources"
 
-    shutil.rmtree(src_resources_path)
-    shutil.rmtree(test_resources_path)
+    if(os.path.exists(src_resources_path)):
+        shutil.rmtree(src_resources_path)
+    if(os.path.exists(test_resources_path)):
+        shutil.rmtree(test_resources_path)
+
     yield
 
 def test_download_edgar_index_file_and_get_path():
@@ -96,11 +99,14 @@ def test_download_edgar_index_file_and_get_path():
 def test_process_13f_hr():
     filing_form = "13F-HR"
     quarterly_13f_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    assert(len(quarterly_13f_file_path_list)) # Check that there is at least one form to test
     
     for quarterly_13f_form_path in quarterly_13f_file_path_list:
         with open(quarterly_13f_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_13f_form_path, line)
+
+                print(company_info_tuple)
 
                 response = sec_api.get_13f_hr_filing_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
@@ -119,6 +125,7 @@ def test_process_13f_hr():
 def test_process_13f_hr_amendment():
     filing_form = "13F-HR/A"
     quarterly_13f_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    assert(len(quarterly_13f_amendment_file_path_list)) # Check that there is at least one form to test
     
     for quarterly_13f_amendment_form_path in quarterly_13f_amendment_file_path_list:
         with open(quarterly_13f_amendment_form_path) as file:
@@ -142,13 +149,14 @@ def test_process_13f_hr_amendment():
 def test_process_10k():
     filing_form = "10-K"
     quarterly_10k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
-    
+    assert(len(quarterly_10k_file_path_list)) # Check that there is at least one form to test
+
     for quarterly_10k_form_path in quarterly_10k_file_path_list:
         with open(quarterly_10k_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_10k_form_path, line)
 
-                response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
@@ -161,13 +169,15 @@ def test_process_10k():
 def test_process_10k_amendment():
     filing_form = "10-K/A"
     quarterly_10k_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
-    
+    assert(len(quarterly_10k_amendment_file_path_list)) # Check that there is at least one form to test
+
+
     for quarterly_10k_amendment_form_path in quarterly_10k_amendment_file_path_list:
         with open(quarterly_10k_amendment_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_10k_amendment_form_path, line)
 
-                response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
@@ -180,13 +190,36 @@ def test_process_10k_amendment():
 def test_process_10q():
     filing_form = "10-Q"
     quarterly_10q_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
-    
+    assert(len(quarterly_10q_file_path_list)) # Check that there is at least one form to test
+
+
     for quarterly_10q_form_path in quarterly_10q_file_path_list:
         with open(quarterly_10q_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_10q_form_path, line)
 
-                response = sec_api.get10QFilingForCompanyApi(company_info_tuple[4])
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+
+                file_paths = helper.process_10q(response, sec_api, company_info_tuple)
+                for path in file_paths:
+                    assert(os.path.exists(path)) # Check file exists
+                    df = pd.read_csv(path)
+                    assert(len(df.columns) != 0) # Check not empty
+
+def test_process_10q_amendment():
+    filing_form = "10-Q/A"
+    quarterly_10q_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    assert(len(quarterly_10q_amendment_file_path_list)) # Check that there is at least one form to test
+
+
+    for quarterly_10q_amendment_form_path in quarterly_10q_amendment_file_path_list:
+        with open(quarterly_10q_amendment_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_10q_amendment_form_path, line)
+
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
@@ -210,24 +243,23 @@ def test_process_10KA():
     assert False
 
 def test_process_8k():
-    filing_form = "8-k"
+    filing_form = "8-K"
     quarterly_8k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
-    
+    assert(len(quarterly_8k_file_path_list)) # Check that there is at least one form to test
+
+
     for quarterly_8k_form_path in quarterly_8k_file_path_list:
         with open(quarterly_8k_form_path) as file:
             for line in itertools.islice(file, 0, None):
                 company_info_tuple = get_company_info_tuple(quarterly_8k_form_path, line)
                 
-                response = sec_api.get8KFilingForCompanyApi(company_info_tuple[4])
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                 assert(response.status_code == 200)
                 time.sleep(1/10)
                 
                 file_paths = helper.process_8k(response, sec_api, company_info_tuple)
                 for path in file_paths:
                     assert(os.path.exists(path)) # Check file exists
-
-
-        
 
 def test_process_4():
     assert False

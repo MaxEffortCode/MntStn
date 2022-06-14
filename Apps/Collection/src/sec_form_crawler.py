@@ -16,6 +16,9 @@ file_counter_13f_hr = 0
 file_counter_13f_hr_amendment = 0
 file_counter_10k = 0
 file_counter_10k_amendment = 0
+file_counter_10Q = 0
+file_counter_10Q_amendment = 0
+file_counter_8k = 0
 
 #
 # Helper Methods
@@ -56,21 +59,33 @@ for yr in years:
                 elif(company_info_tuple[1] == "10-K"):
                     file_counter_10k += 1
                     logger.info(f"Processing 10-K for : {company_info_tuple[0]}\n")
-                    filing_response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                     time.sleep(1/10)
                     helper.process_10k(filing_response, sec_api, company_info_tuple)
                 elif(company_info_tuple[1] == "10-K/A"):
                     file_counter_10k_amendment += 1
                     logger.info(f"Processing 10-K/A for : {company_info_tuple[0]}\n")
-                    filing_response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                     time.sleep(1/10)
                     helper.process_10k(filing_response, sec_api, company_info_tuple)
                 elif(company_info_tuple[1] == "8-K"):
-                    file_counter_10k_amendment += 1
+                    file_counter_8k += 1
                     logger.info(f"Processing 8-K for : {company_info_tuple[0]}\n")
-                    filing_response = sec_api.get8KFilingForCompanyApi(company_info_tuple[4])
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
                     time.sleep(1/10)
                     helper.process_8k(filing_response, sec_api, company_info_tuple)
+                elif(company_info_tuple[1] == "10-Q"):
+                    file_counter_10Q += 1
+                    logger.info(f"Processing 10-Q for : {company_info_tuple[0]}\n")
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
+                    time.sleep(1/10)
+                    helper.process_10q(filing_response, sec_api, company_info_tuple)
+                elif(company_info_tuple[1] == "10-Q/A"):
+                    file_counter_10Q_amendment += 1
+                    logger.info(f"Processing 10-Q/A for : {company_info_tuple[0]}\n")
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
+                    time.sleep(1/10)
+                    helper.process_10q(filing_response, sec_api, company_info_tuple)
                 else:
                     continue
 

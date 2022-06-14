@@ -81,11 +81,8 @@ def setup():
     current_path = Path(f"{os.path.dirname(__file__)}")
     test_resources_path = f"{current_path}/resources"
 
-    if(os.path.exists(src_resources_path)):
-        shutil.rmtree(src_resources_path)
-    if(os.path.exists(test_resources_path)):
-        shutil.rmtree(test_resources_path)
-        
+    shutil.rmtree(src_resources_path)
+    shutil.rmtree(test_resources_path)
     yield
 
 def test_download_edgar_index_file_and_get_path():
@@ -193,12 +190,12 @@ def test_process_10q():
                 assert(response.status_code == 200)
                 time.sleep(1/10)
 
-                file_paths = helper.process_10k(response, sec_api, company_info_tuple)
+                file_paths = helper.process_10q(response, sec_api, company_info_tuple)
                 for path in file_paths:
                     assert(os.path.exists(path)) # Check file exists
                     df = pd.read_csv(path)
                     assert(len(df.columns) != 0) # Check not empty
-    assert False
+
 
 def test_html_to_pdf():
     assert False
@@ -212,9 +209,25 @@ def test_process_NT10k():
 def test_process_10KA():
     assert False
 
-
 def test_process_8k():
-    assert False
+    filing_form = "8-k"
+    quarterly_8k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    
+    for quarterly_8k_form_path in quarterly_8k_file_path_list:
+        with open(quarterly_8k_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_8k_form_path, line)
+                
+                response = sec_api.get8KFilingForCompanyApi(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+                
+                file_paths = helper.process_8k(response, sec_api, company_info_tuple)
+                for path in file_paths:
+                    assert(os.path.exists(path)) # Check file exists
+
+
+        
 
 def test_process_4():
     assert False

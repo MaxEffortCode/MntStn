@@ -65,6 +65,12 @@ for yr in years:
                     filing_response = sec_api.get10kFilingForCompanyApi(company_info_tuple[4])
                     time.sleep(1/10)
                     helper.process_10k(filing_response, sec_api, company_info_tuple)
+                elif(company_info_tuple[1] == "8-K"):
+                    file_counter_10k_amendment += 1
+                    logger.info(f"Processing 8-K for : {company_info_tuple[0]}\n")
+                    filing_response = sec_api.get8KFilingForCompanyApi(company_info_tuple[4])
+                    time.sleep(1/10)
+                    helper.process_8k(filing_response, sec_api, company_info_tuple)
                 else:
                     continue
 

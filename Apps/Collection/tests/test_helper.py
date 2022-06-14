@@ -171,7 +171,6 @@ def test_process_10k_amendment():
     quarterly_10k_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     assert(len(quarterly_10k_amendment_file_path_list)) # Check that there is at least one form to test
 
-
     for quarterly_10k_amendment_form_path in quarterly_10k_amendment_file_path_list:
         with open(quarterly_10k_amendment_form_path) as file:
             for line in itertools.islice(file, 0, None):
@@ -192,7 +191,6 @@ def test_process_10q():
     quarterly_10q_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     assert(len(quarterly_10q_file_path_list)) # Check that there is at least one form to test
 
-
     for quarterly_10q_form_path in quarterly_10q_file_path_list:
         with open(quarterly_10q_form_path) as file:
             for line in itertools.islice(file, 0, None):
@@ -212,7 +210,6 @@ def test_process_10q_amendment():
     filing_form = "10-Q/A"
     quarterly_10q_amendment_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     assert(len(quarterly_10q_amendment_file_path_list)) # Check that there is at least one form to test
-
 
     for quarterly_10q_amendment_form_path in quarterly_10q_amendment_file_path_list:
         with open(quarterly_10q_amendment_form_path) as file:
@@ -246,7 +243,6 @@ def test_process_8k():
     filing_form = "8-K"
     quarterly_8k_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     assert(len(quarterly_8k_file_path_list)) # Check that there is at least one form to test
-
 
     for quarterly_8k_form_path in quarterly_8k_file_path_list:
         with open(quarterly_8k_form_path) as file:

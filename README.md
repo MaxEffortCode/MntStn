@@ -64,3 +64,7 @@ We are using the pytest framework for testing. It is the goal to have unit and i
 ```
 python3.10 -m pytest
 ```
+To run individual tests:
+```
+python3.10 -m pytest <path_to_repo>/MntStn/Apps/Collection/tests/test_helper.py::<test_function_to_run>
+```

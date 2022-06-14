@@ -416,6 +416,7 @@ class helper:
         return None
 
     def process_10q(filingFile, secApi, companyInfoTuple):
+        financialStatementList = []
         for file in filingFile.json()['directory']['item']:
             # {'last-modified': '2022-02-09 09:00:46', 'name': 'FilingSummary.xml', 'type': 'text.gif', 'size': '34225'}
             if file['name'] == 'FilingSummary.xml':
@@ -564,6 +565,10 @@ class helper:
 
                     dataFrame.to_csv(
                         f"{path}/{reportListName}.csv", index=True, header=True)
+                    
+                    financialStatementList.append(f"{path}/{reportListName}.csv")
+                    
+        return financialStatementList
 
     def process_8k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

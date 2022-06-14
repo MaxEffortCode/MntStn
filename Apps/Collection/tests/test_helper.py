@@ -177,8 +177,28 @@ def test_process_10k_amendment():
                     df = pd.read_csv(path)
                     assert(len(df.columns) != 0) # Check not empty
 
+def test_process_10q():
+    filing_form = "10-Q"
+    quarterly_10q_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
+    
+    for quarterly_10q_form_path in quarterly_10q_file_path_list:
+        with open(quarterly_10q_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_10q_form_path, line)
+
+                response = sec_api.get10QFilingForCompanyApi(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+
+                file_paths = helper.process_10k(response, sec_api, company_info_tuple)
+                for path in file_paths:
+                    assert(os.path.exists(path)) # Check file exists
+                    df = pd.read_csv(path)
+                    assert(len(df.columns) != 0) # Check not empty
+    assert False
+
 def test_html_to_pdf():
-    assert False7
+    assert False
 
 def test_process_11k():
     assert False
@@ -189,8 +209,6 @@ def test_process_NT10k():
 def test_process_10KA():
     assert False
 
-def test_process_10q():
-    assert False
 
 def test_process_8k():
     assert False

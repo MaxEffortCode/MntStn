@@ -81,8 +81,11 @@ def setup():
     current_path = Path(f"{os.path.dirname(__file__)}")
     test_resources_path = f"{current_path}/resources"
 
-    shutil.rmtree(src_resources_path)
-    shutil.rmtree(test_resources_path)
+    if(os.path.exists(src_resources_path)):
+        shutil.rmtree(src_resources_path)
+    if(os.path.exists(test_resources_path)):
+        shutil.rmtree(test_resources_path)
+        
     yield
 
 def test_download_edgar_index_file_and_get_path():

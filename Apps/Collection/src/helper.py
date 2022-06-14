@@ -95,6 +95,10 @@ def html_to_pdf(url, path, pdf_name):
     
     return f'{path}/{pdf_name}.pdf'
 
+def xlxs_to_csv(url, path):
+    df = pd.read_excel(url, index_col=0)
+    df.to_csv(path)
+
 class helper:
     def downloadEdgarIndexFileAndGetPath(response, qtr, year):
         path = f"{os.path.dirname(__file__)}/resources/edgar-full-index-archives"
@@ -572,61 +576,31 @@ class helper:
 
     def process_8k(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
-            # file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
-            name = file['name']
-            if ".htm" in name and ".html" not in name:
-                htm = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
-                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
-                end_bit_of_url = "8-k-filing.html"
-                print(f"htm = {htm}")
-                request_content = secApi.get(htm)
-                read_html_pandas(request_content, companyInfoTuple)
-
-            if(name != 'FilingSummary.xml'):
-                continue
-
-            xmlSummary = secApi.baseUrl + \
-                filingFile.json()['directory']['name'] + "/" + file['name']
-            logger.info(f"Searching through: {xmlSummary}")
-            base_url = xmlSummary.replace('FilingSummary.xml', '')
-            content = secApi.get(xmlSummary).content
-            soup = BeautifulSoup(content, 'xml')
-
-            end_bit_of_url = soup.find(doctype='8-K').contents[0]
-
-            main_url = base_url + end_bit_of_url
-            logger.info(f"Preforming GET on {main_url}")
-
-            content = secApi.get(main_url).content
-            soup = BeautifulSoup(content, 'xml')
-
-            pdf = weasyprint.HTML(main_url).write_pdf()
-
+            file_url = secApi.baseUrl + \
+                        filingFile.json()['directory']['name'] + "/" + file['name']
             path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             try:
-                # /home/max/MntStn/Apps/Collection/src/resources/companies
+                if '.pdf' in file['name']:
+                    download_pdf_files(file, companyInfoTuple, file_url)
 
-                open(f'{path}/{end_bit_of_url.strip(".htm")}.pdf', 'ab').write(pdf)
-
-                for link in soup.find_all('a'):
-                    attached_url = base_url + link.get('href')
-                    pdf = weasyprint.HTML(attached_url).write_pdf()
-                    open(f'{path}/{end_bit_of_url.strip(".htm")}.pdf',
-                         'ab').write(pdf)
-
-            except TypeError:
-                logger.error(
-                    f"Failed to concatenate str probs cause its <nonetype> \n")
-                time.sleep(1/10)
-
-            except:
-                logger.error(f"http 404 not found \n")
-                time.sleep(1/10)
-
-        return
+    
+                elif '.htm' or '.html' in file['name']:
+                    pdf = pdfkit.from_url(file_url, output_path = p)
+                
+                elif 'xlsx' in file['name']:
+                    xlxs_to_csv(file_url, p)
+                    
+                else:
+                    print(f"didnt attempt to download: {file['name']}\n \
+                        at url: {file_url}")
+                    time.sleep(1/10)
+                
+            except Exception as e:
+                print(f"failed on {file_url}\n\
+                    with error: {e}")
+                time.sleep(2)
 
     def process_4(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:
@@ -722,27 +696,15 @@ class helper:
                     #pdfkit.from_file(filePath, f"{filing}.pdf", options={"enable-local-file-access": True})
                     
                 elif '.htm' in file['name']:
-                    #download_htm_files(file, companyInfoTuple, file_url)
-                    #filePath = html_save(file, companyInfoTuple, file_url)
-                    #print(f"\n*********** filePath = {filePath} ********** \n")
                     filing = companyInfoTuple[2].replace("/", "")
-                    #filePath = filePath.replace(" ", "")
-                    
-                    
                     options = {
                         'page-size' : 'Letter',
                         'encoding' : "UTF-8",
                     }
                     
-                    #pdfkit.from_file(filePath, f"{filing}.pdf", verbose=False, options=options)
                     pdf = pdfkit.from_url(file_url, output_path= f"/home/max/MntStn/Apps/Collection/src/resources/testOut.pdf")
-                    
-                    #print(f"\n*********** filePath = {filePath} ********** \n")
+
                     print(f"\n*********** fileURL = {file_url} ********** \n")
-                    
-                    
-                    
-                    time.sleep(90)
 
                 else:
                     print(f"didnt attempt to download: {file['name']}\n \

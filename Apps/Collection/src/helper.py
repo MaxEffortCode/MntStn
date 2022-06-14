@@ -95,7 +95,7 @@ def html_to_pdf(url, path, pdf_name):
     
     return f'{path}/{pdf_name}.pdf'
 
-def xlxs_to_csv(url, path):
+def xlsx_to_csv(url, path):
     df = pd.read_excel(url, index_col=0)
     df.to_csv(path)
 
@@ -575,26 +575,39 @@ class helper:
         return financialStatementList
 
     def process_8k(filingFile, secApi, companyInfoTuple):
+        financialStatementList = []
         for file in filingFile.json()['directory']['item']:
             file_url = secApi.baseUrl + \
                         filingFile.json()['directory']['name'] + "/" + file['name']
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+            
+            file_path_extension = file['name']
+            file_path_extension = file_path_extension.split('.')
+            file_path_extension = file_path_extension[0]
+            
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/8-k-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{file_path_extension}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             try:
-                if '.pdf' in file['name']:
-                    download_pdf_files(file, companyInfoTuple, file_url)
-
-    
-                elif '.htm' or '.html' in file['name']:
-                    pdf = pdfkit.from_url(file_url, output_path = p)
-                
-                elif 'xlsx' in file['name']:
-                    xlxs_to_csv(file_url, p)
-                    
-                else:
+                if '.xml' or '.zip' or 'css' or 'xsd' or '.jpg' or '.js' or '.txt' in file['name']:
                     print(f"didnt attempt to download: {file['name']}\n \
                         at url: {file_url}")
+                
+                elif '.pdf' in file['name']:
+                    #TODO: return path from function and add path to financialStatementList = []
+                    file_path = download_pdf_files(file, companyInfoTuple, file_url)
+                    financialStatementList.append(file_path)
+
+                elif '.htm' or '.html' in file['name']:
+                    pdf = pdfkit.from_url(file_url, output_path = f"{p}.pdf")
+                    financialStatementList.append(f"{p}.pdf")
+                
+                elif 'xlsx' in file['name']:
+                    xlsx_to_csv(file_url, f"{p}.csv")
+                    financialStatementList.append(f"{p}.csv")
+                
+                else:
+                    print(f"sumbled upon untracked filing: {file['name']}\n \
+                        in url: {file_url}")
                     time.sleep(1/10)
                 
             except Exception as e:

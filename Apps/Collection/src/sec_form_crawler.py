@@ -93,4 +93,6 @@ logger.info("Processed " + str(file_counter_13f_hr) + " 13F-HR files in master f
 logger.info("Processed " + str(file_counter_13f_hr_amendment) + " 13F-HR/A files in master file.")
 logger.info("Processed " + str(file_counter_10k) + " 10-K files in master file.")
 logger.info("Processed " + str(file_counter_10k_amendment) + " 10-K/A files in master file.")
-
+logger.info("Processed " + str(file_counter_8k) + " 8-K files in master file.")
+logger.info("Processed " + str(file_counter_10Q) + " 10-Q files in master file.")
+logger.info("Processed " + str(file_counter_10Q_amendment) + " 10-Q/A files in master file.")

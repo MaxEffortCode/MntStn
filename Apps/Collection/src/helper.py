@@ -42,37 +42,14 @@ def download_htm_files(file, companyInfoTuple, file_url):
                 with error: {e}")
             time.sleep(10)
             return None
-        
 
-def download_pdf_files(file, companyInfoTuple, file_url):
-    try:
-        
-        if '.pdf' in file['name']:
-            filing_type = companyInfoTuple[1].replace("/", "")
-            filing = companyInfoTuple[2].replace("/", "")
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-            p = Path(path)
-            p.mkdir(parents=True, exist_ok=True)
-            filePath = pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
-            time.sleep(1/10)
-            return filePath
-        
-        else:
-            return None
-
-    except Exception as e:
-        print(f"failed on {file_url}\n\
-            with error: {e}")
-        time.sleep(10)
-
-def pdf_dowload_from_url(url, path, pdf_name):
-    sec_pdf = SecAPI()
-    the_damn_pdf = sec_pdf.get(url)
-    with open(f'{path}/{pdf_name}.pdf', 'wb') as fd:
+def download_pdf_by_url(url, full_path_and_file_name, sec_api):
+    the_damn_pdf = sec_api.get(url)
+    with open(f"{full_path_and_file_name}.pdf", 'wb') as fd:
         for chunk in the_damn_pdf.iter_content(2048):
             fd.write(chunk)
     
-    return f'{path}/{pdf_name}.pdf'
+    return f'{path}/{filing_type}.pdf'
 
 def html_save(file, companyInfoTuple, file_url):
     secApi = SecAPI()
@@ -525,8 +502,7 @@ class helper:
                         dataFrame.index = dataFrame[0]
 
                     except(KeyError):
-                        logger.info(
-                            f"Financial statement is empty.\nIgnoring and continuing on.\n")
+                        logger.info(f"Financial statement is empty.\nIgnoring and continuing on.\n")
                         continue
 
                     dataFrame.index.name = headersOfFinancialStatements[index][0]
@@ -569,52 +545,45 @@ class helper:
                     
         return financialStatementList
 
-    def process_8k(filingFile, secApi, companyInfoTuple):
-        financialStatementList = []
+    def process_8k(filingFile, sec_api, company_info_tuple):
+        filesCreatedList = []
         for file in filingFile.json()['directory']['item']:
-            file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + "/" + file['name']
+            file_url = sec_api.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
+
+            # Some company filings have a forward slash like amendments
+            # Using a forward slash in path name will break and isn't allowed so change to -
+            company_filing = company_info_tuple[1]
+            company_filing = company_filing.replace('/', '-')
             
             file_path_extension = file['name']
             file_path_extension = file_path_extension.split('.')
             file_path_extension = file_path_extension[0]
-
-            # Some company filings have a forward slash like amendments
-            # Using a forward slash in path name will break and isn't allowed so change to -
-            company_filing = companyInfoTuple[1]
-            company_filing = company_filing.replace('/', '-')
             
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{file_path_extension}"
+            path = f"{os.path.dirname(__file__)}/resources/companies/{company_info_tuple[0]}/filings/{company_filing}-filing/{company_info_tuple[3]}/{company_info_tuple[2]}"
             p = Path(path)
             p.mkdir(parents=True, exist_ok=True)
             try:
                 if '.xml' or '.zip' or 'css' or 'xsd' or '.jpg' or '.js' or '.txt' in file['name']:
-                    print(f"didnt attempt to download: {file['name']}\n \
-                        at url: {file_url}")
+                    logger.info(f"Didn't attempt to download: {file['name']}\n at url: {file_url}")
                 
                 elif '.pdf' in file['name']:
-                    #TODO: return path from function and add path to financialStatementList = []
-                    file_path = download_pdf_files(file, companyInfoTuple, file_url)
-                    financialStatementList.append(file_path)
+                    file_path = download_pdf_by_url(file_url, f"{path}/{file_path_extension}", sec_api)
+                    filesCreatedList.append(file_path)
 
                 elif '.htm' or '.html' in file['name']:
-                    pdf = pdfkit.from_url(file_url, output_path = f"{p}.pdf")
-                    financialStatementList.append(f"{p}.pdf")
+                    pdf = pdfkit.from_url(file_url, output_path = f"{path}/{file_path_extension}.pdf")
+                    filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file['name']:
-                    xlsx_to_csv(file_url, f"{p}.csv")
-                    financialStatementList.append(f"{p}.csv")
+                    xlsx_to_csv(file_url, f"{path}/{file_path_extension}.csv")
+                    filesCreatedList.append(f"{path}/{file_path_extension}.csv")
                 
                 else:
-                    print(f"sumbled upon untracked filing: {file['name']}\n \
-                        in url: {file_url}")
-                    time.sleep(1/10)
+                    logger.info(f"Stumbled upon untracked filing: {file['name']}\n in url: {file_url}")
                 
             except Exception as e:
-                print(f"failed on {file_url}\n\
-                    with error: {e}")
-                time.sleep(2)
-        return financialStatementList
+                logger.info(f"Caught exception on {file_url}\n with error: {e}")
+        return filesCreatedList
 
     def process_4(filingFile, secApi, companyInfoTuple):
         for file in filingFile.json()['directory']['item']:

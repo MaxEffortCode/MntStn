@@ -45,7 +45,7 @@ def download_htm_files(file, companyInfoTuple, file_url):
 
 def download_pdf_by_url(url, full_path_and_file_name, sec_api):
     the_damn_pdf = sec_api.get(url)
-    with open(f"{full_path_and_file_name}.pdf", 'wb') as fd:
+    with open(f"{full_path_and_file_name}.pdf", "wb") as fd:
         for chunk in the_damn_pdf.iter_content(2048):
             fd.write(chunk)
     
@@ -562,30 +562,28 @@ class helper:
             path = f"{os.path.dirname(__file__)}/resources/companies/{company_info_tuple[0]}/filings/{company_filing}-filing/{company_info_tuple[3]}/{company_info_tuple[2]}"
             p = Path(path)
             try:
-                if '.xml' or '.zip' or 'css' or 'xsd' or '.jpg' or '.js' or '.txt' in file['name']:
-                    logger.info(f"Didn't attempt to download: {file['name']}\n at url: {file_url}")
-                
-                elif '.pdf' in file['name']:
-                    print("PDF CREATED")
+                if '.pdf' in file['name']:
+                    print("About to create PDF")
                     p.mkdir(parents=True, exist_ok=True)
-                    file_path = download_pdf_by_url(file_url, f"{path}/{file_path_extension}", sec_api)
+                    file_path = download_pdf_by_url(file_url, f'{path}/{file_path_extension}', sec_api)
                     filesCreatedList.append(file_path)
 
-                elif '.htm' or '.html' in file['name']:
-                    print("html CREATED")
+                elif ('.htm' or '.html') in file['name']:
+                    print(f"\nabout to turn htm or html into a PDF with url: {file_url}")
+                    print(f'should be saved under - {path}/{file_path_extension}.pdf')
                     p.mkdir(parents=True, exist_ok=True)
-                    pdf = pdfkit.from_url(file_url, output_path = f"{path}/{file_path_extension}.pdf")
+                    pdf = pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
                     filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file['name']:
-                    print("xlsx CREATED")
+                    print("xlsx to CSV about to create")
                     p.mkdir(parents=True, exist_ok=True)
                     xlsx_to_csv(file_url, f"{path}/{file_path_extension}.csv")
                     filesCreatedList.append(f"{path}/{file_path_extension}.csv")
                 
                 else:
-                    logger.info(f"Stumbled upon untracked filing: {file['name']}\n in url: {file_url}")
-                
+                    # xml, zip, css, xsd, jpg, js, txt, etc
+                    logger.info(f"Didn't attempt to download: {file['name']}\n at url: {file_url}")                
             except Exception as e:
                 logger.info(f"Caught exception on {file_url}\n with error: {e}")
         return filesCreatedList

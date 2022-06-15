@@ -561,20 +561,25 @@ class helper:
             
             path = f"{os.path.dirname(__file__)}/resources/companies/{company_info_tuple[0]}/filings/{company_filing}-filing/{company_info_tuple[3]}/{company_info_tuple[2]}"
             p = Path(path)
-            p.mkdir(parents=True, exist_ok=True)
             try:
                 if '.xml' or '.zip' or 'css' or 'xsd' or '.jpg' or '.js' or '.txt' in file['name']:
                     logger.info(f"Didn't attempt to download: {file['name']}\n at url: {file_url}")
                 
                 elif '.pdf' in file['name']:
+                    print("PDF CREATED")
+                    p.mkdir(parents=True, exist_ok=True)
                     file_path = download_pdf_by_url(file_url, f"{path}/{file_path_extension}", sec_api)
                     filesCreatedList.append(file_path)
 
                 elif '.htm' or '.html' in file['name']:
+                    print("html CREATED")
+                    p.mkdir(parents=True, exist_ok=True)
                     pdf = pdfkit.from_url(file_url, output_path = f"{path}/{file_path_extension}.pdf")
                     filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file['name']:
+                    print("xlsx CREATED")
+                    p.mkdir(parents=True, exist_ok=True)
                     xlsx_to_csv(file_url, f"{path}/{file_path_extension}.csv")
                     filesCreatedList.append(f"{path}/{file_path_extension}.csv")
                 

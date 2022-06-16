@@ -255,7 +255,7 @@ def test_process_8k():
                 
                 file_paths = helper.process_8k(response, sec_api, company_info_tuple)
                 for path in file_paths:
-                    assert(os.path.exists(path)) # Check file exists
+                    assert(os.path.exists(path)) # Check directory exists
 
 def test_process_4():
     assert False

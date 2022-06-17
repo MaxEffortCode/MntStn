@@ -703,18 +703,42 @@ class helper:
                 time.sleep(2)
                 
     def process_untracked(filingFile, secApi, companyInfoTuple):
+        filesCreatedList = []
         for file in filingFile.json()['directory']['item']:
+            company_filing = companyInfoTuple[1]
+            company_filing = company_filing.replace('/', '-')
+            
+            file_path_extension = file['name']
+            file_path_extension = file_path_extension.split('.')
+            file_path_extension = file_path_extension[0]
+            
             file_url = secApi.baseUrl + \
                         filingFile.json()['directory']['name'] + "/" + file['name']
+            
+            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+            p = Path(path)
             try:
-                if '.pdf' in file['name']:
-                    download_pdf_files(file, companyInfoTuple, file_url)
+                file_name = file['name']
+                file_name = file_name.lower()
+                if '.pdf' in file_name:
+                    print("About to create PDF")
+                    p.mkdir(parents=True, exist_ok=True)
+                    file_path = download_pdf_by_url(file_url, f'{path}/{file_path_extension}', secApi)
+                    filesCreatedList.append(file_path)
                     
-                elif '.htm' in file['name']:
+                elif ('.htm' or 'html') in file_name:
                     download_htm_files(file, companyInfoTuple, file_url)
                     logger.info(msg = f"Saved '.htm' as '.pdf': {file['name']}\n at url: {file_url}")
-
+                
+                elif 'xlsx' in file_name:
+                    print("xlsx to CSV about to create")
+                    p.mkdir(parents=True, exist_ok=True)
+                    xlsx_to_csv(file_url, f"{path}/{file_path_extension}.csv")
+                    filesCreatedList.append(f"{path}/{file_path_extension}.csv")
+                
                 else:
+                    # xml, zip, css, xsd, jpg, js, txt, etc
+                    logger.info(f"attempted to download as : {file['name']}\n at url: {file_url}")
                     html_save(file, companyInfoTuple, file_url)
                     logger.info(msg = f"Saved {file['name']} as '.html'\n at url: {file_url}")
                     time.sleep(1/10)

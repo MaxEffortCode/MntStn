@@ -21,10 +21,38 @@ quarters = ["1"]
 # Helper methods below for tests
 # ================================================================================
 # 
-def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file_path, qtr, yr):
+def get_quarterly_edgar_index_file_for_untracked_filing_form(edgar_index_file_path, qtr, yr):
+    lines = []
     with open(edgar_index_file_path, "r") as file:
         for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
-            lines = file.readlines()
+            lines.append(line)
+    
+    forms = ['13-F', '8-k', '13F-HR/A', '13F-HR', '10-K', '10-K/A', '10-Q', '10-Q/A']
+    for form in forms:
+        temp_form_name = form.replace("/", "")
+        temp_form_name = temp_form_name.replace(',', '')
+        temp_form_name = temp_form_name.replace(' ', '-')
+
+    path = f"{os.path.dirname(__file__)}/resources/edgar-archives/{yr}/{qtr}"
+    p = Path(path)
+    p.mkdir(parents=True, exist_ok=True)
+    new_path = f"{path}/all-companies-with-untracked-filings.csv"
+    
+    with open(new_path, "w+") as file:
+        for line in lines:
+            split_line_company_info = line.strip("\n").split("|")
+            company_filing = split_line_company_info[2]
+            if(company_filing not in form):
+                file.write(line)
+    file.close()
+    return new_path
+    
+
+def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file_path, qtr, yr):
+    lines = []
+    with open(edgar_index_file_path, "r") as file:
+        for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
+            lines.append(line)
             
     temp_form_name = form.replace("/", "")
     temp_form_name = temp_form_name.replace(',', '')
@@ -45,11 +73,17 @@ def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file
     return new_path
 
 def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form_name):
-    if filing_form_name == "Untracked":
-        #TODO: make a collection of all the file types
-        # not covered already in the tests (i.e. 13f, 8k..)
-        pass
     quarterly_edgar_index_file_paths_for_single_filing_form_list = []
+    
+    if filing_form_name == "Untracked":
+        for yr in years:
+            for qtr in quarters:
+                #TODO: make a collection of all the file types
+                # not covered already in the tests (i.e. 13f, 8k,..)
+                response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+                edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+                
+        
     for yr in years:
         for qtr in quarters:
             response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
@@ -305,4 +339,7 @@ def test_download_htm_files():
 
 def untracked_files():
     filing_form = "Untracked"
+    quarterly_untracked_file_path_list = get_quarterly_edgar_index_file_for_untracked_filing_form(filing_form)
+    assert(len(quarterly_untracked_file_path_list))
+    #TODO: to be continued 
     pass

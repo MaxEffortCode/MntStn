@@ -726,9 +726,12 @@ class helper:
                     file_path = download_pdf_by_url(file_url, f'{path}/{file_path_extension}', secApi)
                     filesCreatedList.append(file_path)
                     
-                elif ('.htm' or 'html') in file_name:
-                    download_htm_files(file, companyInfoTuple, file_url)
-                    logger.info(msg = f"Saved '.htm' as '.pdf': {file['name']}\n at url: {file_url}")
+                elif ('.htm' or '.html') in file['name']:
+                    print(f"\nabout to turn htm or html into a PDF with url: {file_url}")
+                    print(f'should be saved under - {path}/{file_path_extension}.pdf')
+                    p.mkdir(parents=True, exist_ok=True)
+                    pdf = pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
+                    filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file_name:
                     print("xlsx to CSV about to create")
@@ -739,11 +742,14 @@ class helper:
                 else:
                     # xml, zip, css, xsd, jpg, js, txt, etc
                     logger.info(f"attempted to download as : {file['name']}\n at url: {file_url}")
-                    html_save(file, companyInfoTuple, file_url)
+                    path = html_save(file, companyInfoTuple, file_url)
                     logger.info(msg = f"Saved {file['name']} as '.html'\n at url: {file_url}")
+                    filesCreatedList.append(f"{path}")
                     time.sleep(1/10)
                 
             except Exception as e:
                 print(f"failed on {file_url}\n\
                     with error: {e}")
                 time.sleep(10)
+
+        return filesCreatedList

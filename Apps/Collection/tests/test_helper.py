@@ -9,7 +9,7 @@ import shutil
 import pytest
 
 sec_api = SecAPI()
-
+tracked_forms = ['13-F', '8-K', '13F-HR/A', '13F-HR', '10-K', '10-K/A', '10-Q', '10-Q/A']
 # I think that we should expand this later to do larger date range of forms
 # We may learn that standardizations of forms change through out years
 # and that in the future if they change, these tests will catch them and tell us
@@ -27,8 +27,8 @@ def get_quarterly_edgar_index_file_for_untracked_filing_form(edgar_index_file_pa
         for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
             lines.append(line)
     
-    forms = ['13-F', '8-k', '13F-HR/A', '13F-HR', '10-K', '10-K/A', '10-Q', '10-Q/A']
-    for form in forms:
+    
+    for form in tracked_forms:
         temp_form_name = form.replace("/", "")
         temp_form_name = temp_form_name.replace(',', '')
         temp_form_name = temp_form_name.replace(' ', '-')
@@ -42,7 +42,7 @@ def get_quarterly_edgar_index_file_for_untracked_filing_form(edgar_index_file_pa
         for line in lines:
             split_line_company_info = line.strip("\n").split("|")
             company_filing = split_line_company_info[2]
-            if(company_filing not in form):
+            if(company_filing not in tracked_forms):
                 file.write(line)
     file.close()
     return new_path
@@ -78,10 +78,11 @@ def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_
     if filing_form_name == "Untracked":
         for yr in years:
             for qtr in quarters:
-                #TODO: make a collection of all the file types
-                # not covered already in the tests (i.e. 13f, 8k,..)
                 response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
                 edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+                quarterly_form_path = get_quarterly_edgar_index_file_for_untracked_filing_form(edgar_index_file_path, qtr, yr)
+            quarterly_edgar_index_file_paths_for_single_filing_form_list.append(quarterly_form_path)
+        return quarterly_edgar_index_file_paths_for_single_filing_form_list
                 
         
     for yr in years:
@@ -337,9 +338,21 @@ def test_download_htm_files():
     
     # assert(True)
 
-def untracked_files():
+def test_untracked_files():
     filing_form = "Untracked"
-    quarterly_untracked_file_path_list = get_quarterly_edgar_index_file_for_untracked_filing_form(filing_form)
+    quarterly_untracked_file_path_list = get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form)
     assert(len(quarterly_untracked_file_path_list))
-    #TODO: to be continued 
+    
+    for quarterly_untracked_form_path in quarterly_untracked_file_path_list:
+        with open(quarterly_untracked_form_path) as file:
+            for line in itertools.islice(file, 0, None):
+                company_info_tuple = get_company_info_tuple(quarterly_untracked_form_path, line)
+                
+                response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
+                assert(response.status_code == 200)
+                time.sleep(1/10)
+                
+                file_paths = helper.process_untracked(response, sec_api, company_info_tuple)
+                for path in file_paths:
+                    assert(os.path.exists(path)) # Check directory exists
     pass

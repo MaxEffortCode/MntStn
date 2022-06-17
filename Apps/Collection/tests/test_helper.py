@@ -21,10 +21,38 @@ quarters = ["1"]
 # Helper methods below for tests
 # ================================================================================
 # 
-def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file_path, qtr, yr):
+def get_quarterly_edgar_index_file_for_untracked_filing_form(edgar_index_file_path, qtr, yr):
+    lines = []
     with open(edgar_index_file_path, "r") as file:
         for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
-            lines = file.readlines()
+            lines.append(line)
+    
+    forms = ['13-F', '8-k', '13F-HR/A', '13F-HR', '10-K', '10-K/A', '10-Q', '10-Q/A']
+    for form in forms:
+        temp_form_name = form.replace("/", "")
+        temp_form_name = temp_form_name.replace(',', '')
+        temp_form_name = temp_form_name.replace(' ', '-')
+
+    path = f"{os.path.dirname(__file__)}/resources/edgar-archives/{yr}/{qtr}"
+    p = Path(path)
+    p.mkdir(parents=True, exist_ok=True)
+    new_path = f"{path}/all-companies-with-untracked-filings.csv"
+    
+    with open(new_path, "w+") as file:
+        for line in lines:
+            split_line_company_info = line.strip("\n").split("|")
+            company_filing = split_line_company_info[2]
+            if(company_filing not in form):
+                file.write(line)
+    file.close()
+    return new_path
+    
+
+def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file_path, qtr, yr):
+    lines = []
+    with open(edgar_index_file_path, "r") as file:
+        for line in itertools.islice(file , 11, None): # TODO: make test later that all edgar master index files start reporting companies on this line
+            lines.append(line)
             
     temp_form_name = form.replace("/", "")
     temp_form_name = temp_form_name.replace(',', '')
@@ -46,6 +74,16 @@ def get_quarterly_edgar_index_file_for_single_filing_form(form, edgar_index_file
 
 def get_range_of_quarterly_edgar_index_file_forms_for_single_filing_form(filing_form_name):
     quarterly_edgar_index_file_paths_for_single_filing_form_list = []
+    
+    if filing_form_name == "Untracked":
+        for yr in years:
+            for qtr in quarters:
+                #TODO: make a collection of all the file types
+                # not covered already in the tests (i.e. 13f, 8k,..)
+                response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
+                edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(response, qtr, yr)
+                
+        
     for yr in years:
         for qtr in quarters:
             response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(qtr, yr)
@@ -278,31 +316,30 @@ def test_pdf_dowload_from_url():
 
 #this... this needs to be fixed
 def test_download_htm_files():
-    companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
-    filingFile = []
-    for fileDir in companyInfoTuplePlusUrl:
-        filingFile.append(fileDir[4])
+    pass
+    # companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
+    # filingFile = []
+    # for fileDir in companyInfoTuplePlusUrl:
+    #     filingFile.append(fileDir[4])
     
-    for filingDirUrl in filingFile:
-        fileDirToTest = sec_api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
-        for file in fileDirToTest.json()['directory']['item']:
-            file_url = sec_api.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                        "/" + file['name']
-            if '.htm' in file['name']:
-                    download_htm_files(file, companyInfoTuplePlusUrl, file_url)
-                    filing_type = companyInfoTuplePlusUrl[1].replace("/", "")
-                    filing = companyInfoTuplePlusUrl[2].replace("/", "")
-                    assert exists(f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuplePlusUrl[0]}/filings/\
-                        {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
+    # for filingDirUrl in filingFile:
+    #     fileDirToTest = sec_api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
+    #     for file in fileDirToTest.json()['directory']['item']:
+    #         file_url = sec_api.baseUrl + \
+    #                     filingFile.json()['directory']['name'] + \
+    #                     "/" + file['name']
+    #         if '.htm' in file['name']:
+    #                 download_htm_files(file, companyInfoTuplePlusUrl, file_url)
+    #                 filing_type = companyInfoTuplePlusUrl[1].replace("/", "")
+    #                 filing = companyInfoTuplePlusUrl[2].replace("/", "")
+    #                 assert exists(f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuplePlusUrl[0]}/filings/\
+    #                     {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
     
-    assert(True)
+    # assert(True)
 
 def untracked_files():
-    path = f"{os.path.dirname(__file__)}/resources/untracked_files" 
-    #f = open(f"{path}/untracked_filing_types.txt", "r")
-    with open(f"{path}/untracked_filing_types.txt") as file:
-        if file_type not in file.read().splitlines():
-            file = open(f"{path}/untracked_filing_types.txt", "a")
-            file.write(f"{file_type}\n")
-        file.close()
+    filing_form = "Untracked"
+    quarterly_untracked_file_path_list = get_quarterly_edgar_index_file_for_untracked_filing_form(filing_form)
+    assert(len(quarterly_untracked_file_path_list))
+    #TODO: to be continued 
+    pass

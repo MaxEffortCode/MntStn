@@ -172,36 +172,6 @@ class helper:
                     self.process_13f_hr_subtree(child, writer)
         return newPath
 
-    # TODO make clean
-    def process_11k(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            # file in  {'last-modified': '2022-01-13 07:31:12', 'name': '0000950170-22-000296-index-headers.html', 'type': 'text.gif', 'size': ''}
-            name = file['name']
-            print(f"name = {name}")
-
-            if "11-k" not in name and "11k" not in name:
-                continue
-
-            end_bit_of_url = name
-            xmlSummary = secApi.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
-            logger.info(f"Searching through: {xmlSummary}")
-            base_url = xmlSummary.replace(name, '')
-            content = secApi.get(xmlSummary).content
-
-            # print(content)
-            soup = BeautifulSoup(content, 'lxml')
-            print(f"\n\n\nsoup \n\n {soup.find_all('a')}")
-            for table in soup.find_all('table'):
-                for table_row in table:
-                    print(f"\ntable row \n {table_row.text}\n")
-
-            # main_url = base_url + end_bit_of_url
-            # logger.info(f"Preforming GET on {main_url}")
-
-            # content = secApi.get(main_url).content
-            # soup = BeautifulSoup(content, 'xml')
-
-            time.sleep(10)
 
     def process_10k(filingFile, secApi, companyInfoTuple):
         financialStatementList = []
@@ -344,58 +314,7 @@ class helper:
                     financialStatementList.append(f"{path}/{reportListName}.csv")
         return financialStatementList
 
-    def process_NT10k(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            if 'nt' in file['name']:
-                filing_type = companyInfoTuple[1].replace(" ", "")
-                file_url = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
-                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
-                p = Path(path)
-                p.mkdir(parents=True, exist_ok=True)
-                html_to_pdf(file_url, p, f"{filing_type}_filling")
-        return None
 
-    def process_10KA(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            try:
-                if '.htm' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    html_to_pdf(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
-
-                if '.pdf' in file['name']:
-                    filing_type = companyInfoTuple[1].replace("/", "")
-                    filing = companyInfoTuple[2].replace("/", "")
-                    file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + \
-                                        "/" + file['name']
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-                    p = Path(path)
-                    p.mkdir(parents=True, exist_ok=True)
-                    pdf_dowload_from_url(file_url, p, f"{filing_type}_filling")
-                    time.sleep(1/10)
-
-                else:
-                    print(f"didnt attempt to download: {file['name']}\n \
-                        at url: {file_url}")
-                    time.sleep(1/10)
-            except Exception as e:
-                print(f"failed on {file_url}\n\
-                    with error: {e}")
-                time.sleep(10)
-        return None
-
-    #
-    # 10-Q are basically quarterly 10Ks that include unaudited financial statements.
-    #
     def process_10q(filingFile, secApi, companyInfoTuple):
         financialStatementList = []
         for file in filingFile.json()['directory']['item']:
@@ -588,119 +507,7 @@ class helper:
                 logger.info(f"Caught exception on {file_url}\n with error: {e}")
         return filesCreatedList
 
-    def process_4(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            print(f"\n******** file json: {file} *********\n")
-            if 'headers' in file['name']:
-                base_link = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/"
-                link = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
-            else:
-                continue
 
-            content = secApi.get(link).content
-            soup = BeautifulSoup(content, features="lxml")
-            href_links = []
-            for href_link in soup.find_all('a'):
-                print(f"href : {href_link.contents[0]}")
-                if 'html' in href_link.contents[0]:
-                    href_links.append(href_link['href'])
-
-            print(f"\n********links: {href_links} *********\n")
-
-            for doc_link in href_links:
-                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{companyInfoTuple[1]}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
-                p = Path(path)
-                p.mkdir(parents=True, exist_ok=True)
-                print(f"**** link: {base_link}/{doc_link} ****")
-                html_to_pdf(f"{base_link}/{doc_link}", p, "doc4")
-
-        return None
-
-    def process_4A(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            print(f"\n******** file json: {file} *********\n")
-            if 'headers' in file['name']:
-                base_link = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/"
-                link = secApi.baseUrl + \
-                    filingFile.json()['directory']['name'] + "/" + file['name']
-            else:
-                continue
-
-            content = secApi.get(link).content
-            soup = BeautifulSoup(content, features="lxml")
-            href_links = []
-            for href_link in soup.find_all('a'):
-                print(f"href : {href_link.contents[0]}")
-                if 'html' in href_link.contents[0]:
-                    href_links.append(href_link['href'])
-
-            print(f"\n********links: {href_links} *********\n")
-
-            for doc_link in href_links:
-                path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{companyInfoTuple[1]}/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
-                p = Path(path)
-                p.mkdir(parents=True, exist_ok=True)
-                print(f"**** link: {base_link}/{doc_link} ****")
-                html_to_pdf(f"{base_link}/{doc_link}", p, "doc4")
-        return None
-
-    def process_24F2NT(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + "/" + file['name']
-            try:
-                if '.pdf' in file['name']:
-                    download_pdf_files(file, companyInfoTuple, file_url)
-                
-                elif '.htm' in file['name']:
-                    download_htm_files(file, companyInfoTuple, file_url)
-
-                else:
-                    print(f"didnt attempt to download: {file['name']}\n at url: {file_url}")
-                    time.sleep(1/10)
-                
-            except Exception as e:
-                print(f"failed on {file_url}\n with error: {e}")
-                time.sleep(10)   
-    
-    def process_497(filingFile, secApi, companyInfoTuple):
-        for file in filingFile.json()['directory']['item']:
-            file_url = secApi.baseUrl + \
-                        filingFile.json()['directory']['name'] + "/" + file['name']
-            try:
-                if '.pdf' in file['name']:
-                    download_pdf_files(file, companyInfoTuple, file_url)
-                    #TODO: make pdfkit turn html file on local to pdf on local and include
-                    #it in requirements
-                    filePath = html_save(file, companyInfoTuple, file_url)
-                    filing = companyInfoTuple[2].replace("/", "")
-                   
-                    #TODO: possible css input to zoom out
-                    #pdfkit.from_file(filePath, f"{filing}.pdf", options={"enable-local-file-access": True})
-                    
-                elif '.htm' in file['name']:
-                    filing = companyInfoTuple[2].replace("/", "")
-                    options = {
-                        'page-size' : 'Letter',
-                        'encoding' : "UTF-8",
-                    }
-                    
-                    pdf = pdfkit.from_url(file_url, output_path= f"/home/max/MntStn/Apps/Collection/src/resources/testOut.pdf")
-
-                    print(f"\n*********** fileURL = {file_url} ********** \n")
-
-                else:
-                    print(f"didnt attempt to download: {file['name']}\n \
-                        at url: {file_url}")
-                    time.sleep(1/10)
-                
-            except Exception as e:
-                print(f"failed on {file_url}\n\
-                    with error: {e}")
-                time.sleep(2)
                 
     def process_untracked(filingFile, secApi, companyInfoTuple):
         filesCreatedList = []

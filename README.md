@@ -69,6 +69,11 @@ Deactivate
 4. Deactivate your virtual environment
 
 # Running the test suite
+## Install pytest
+```
+pip install pytest
+```
+
 We are using the pytest framework for testing. It is the goal to have unit and integration tests for ALL modules that are written. To setup, please refer to configuring the Development Environment above, but instead of running the form scraper script after steps 1 and 2, you just need to run the following in your virtual environment:
 ```
 python3.10 -m pytest

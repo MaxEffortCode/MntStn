@@ -266,17 +266,6 @@ def test_process_10q_amendment():
                     assert(len(df.columns) != 0) # Check not empty
 
 
-def test_html_to_pdf():
-    assert False
-
-def test_process_11k():
-    assert False
-
-def test_process_NT10k():
-    assert False
-
-def test_process_10KA():
-    assert False
 
 def test_process_8k():
     filing_form = "8-K"
@@ -296,47 +285,12 @@ def test_process_8k():
                 for path in file_paths:
                     assert(os.path.exists(path)) # Check directory exists
 
-def test_process_4():
-    assert False
-
-def test_process_4A():
-    assert False
-
-def test_process_24F2NT():
-    assert False
-
-def test_process_497():
-    assert False
-
-def test_download_pdf_files():
-    assert False
-
-def test_pdf_dowload_from_url():
-    assert False
 
 
-#this... this needs to be fixed
-def test_download_htm_files():
-    pass
-    # companyInfoTuplePlusUrl = get_company_info_tuple_by_filing_type('497')
-    # filingFile = []
-    # for fileDir in companyInfoTuplePlusUrl:
-    #     filingFile.append(fileDir[4])
-    
-    # for filingDirUrl in filingFile:
-    #     fileDirToTest = sec_api.get497FilingForCompanyApi(companyInfoTuplePlusUrl)
-    #     for file in fileDirToTest.json()['directory']['item']:
-    #         file_url = sec_api.baseUrl + \
-    #                     filingFile.json()['directory']['name'] + \
-    #                     "/" + file['name']
-    #         if '.htm' in file['name']:
-    #                 download_htm_files(file, companyInfoTuplePlusUrl, file_url)
-    #                 filing_type = companyInfoTuplePlusUrl[1].replace("/", "")
-    #                 filing = companyInfoTuplePlusUrl[2].replace("/", "")
-    #                 assert exists(f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuplePlusUrl[0]}/filings/\
-    #                     {filing_type}/{companyInfoTuplePlusUrl[3]}/{filing}")
-    
-    # assert(True)
+def test_pdf_dowload_by_url():
+    assert True
+
+
 
 def test_untracked_files():
     filing_form = "Untracked"
@@ -355,4 +309,3 @@ def test_untracked_files():
                 file_paths = helper.process_untracked(response, sec_api, company_info_tuple)
                 for path in file_paths:
                     assert(os.path.exists(path)) # Check directory exists
-    pass

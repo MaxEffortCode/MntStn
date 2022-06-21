@@ -4,7 +4,6 @@ import os
 import time
 import xml.etree.ElementTree as ET
 import pandas as pd
-import weasyprint
 import pdfkit
 
 from shutil import ExecError
@@ -21,27 +20,7 @@ from urllib.request import urlretrieve, build_opener, install_opener
 
 logger = logging.getLogger(__name__)
 
-def download_htm_files(file, companyInfoTuple, file_url):
-    try:
-        if '.htm' in file['name']:
-            filing_type = companyInfoTuple[1].replace("/", "")
-            filing = companyInfoTuple[2].replace("/", "")
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
-            p = Path(path)
-            p.mkdir(parents=True, exist_ok=True)
-            filePath = html_to_pdf(file_url, p, f"{filing_type}_filling")
-            time.sleep(1/10)
-            
-            return filePath
-        
-        else:
-            return None
-    
-    except Exception as e:
-            print(f"failed on {file_url}\n\
-                with error: {e}")
-            time.sleep(10)
-            return None
+
 
 def download_pdf_by_url(url, full_path_and_file_name, sec_api):
     the_damn_pdf = sec_api.get(url)
@@ -49,7 +28,7 @@ def download_pdf_by_url(url, full_path_and_file_name, sec_api):
         for chunk in the_damn_pdf.iter_content(2048):
             fd.write(chunk)
     
-    return f'{path}/{filing_type}.pdf'
+    return f'{full_path_and_file_name}.pdf'
 
 def html_save(file, companyInfoTuple, file_url):
     secApi = SecAPI()
@@ -66,11 +45,6 @@ def html_save(file, companyInfoTuple, file_url):
     return f'{p}/{html_name}_direct_save.html'
 
 
-def html_to_pdf(url, path, pdf_name):
-    pdf = weasyprint.HTML(url).write_pdf()
-    open(f'{path}/{pdf_name}.pdf', 'ab').write(pdf)
-    
-    return f'{path}/{pdf_name}.pdf'
 
 def xlsx_to_csv(url, path):
     df = pd.read_excel(url, index_col=0)
@@ -171,6 +145,8 @@ class helper:
                 for child in root:
                     self.process_13f_hr_subtree(child, writer)
         return newPath
+
+
 
 
     def process_10k(filingFile, secApi, companyInfoTuple):
@@ -491,7 +467,7 @@ class helper:
                     print(f"\nabout to turn htm or html into a PDF with url: {file_url}")
                     print(f'should be saved under - {path}/{file_path_extension}.pdf')
                     p.mkdir(parents=True, exist_ok=True)
-                    pdf = pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
+                    pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
                     filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file['name']:
@@ -537,7 +513,7 @@ class helper:
                     print(f"\nabout to turn htm or html into a PDF with url: {file_url}")
                     print(f'should be saved under - {path}/{file_path_extension}.pdf')
                     p.mkdir(parents=True, exist_ok=True)
-                    pdf = pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
+                    pdfkit.from_url(file_url, output_path = f'{path}/{file_path_extension}.pdf')
                     filesCreatedList.append(f"{path}/{file_path_extension}.pdf")
                 
                 elif 'xlsx' in file_name:

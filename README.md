@@ -5,6 +5,15 @@ Weasyprint is a library we use to process HTML pages into PDFs. The easiest way 
 
 ## 1.1 Installing HomeBrew (Linux):
 ```
+sudo apt update
+sudo apt upgrade
+```
+installing curl:
+```
+sudo apt install curl
+```
+Installing homebrew
+```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 enabling HomeBrew on PATH:

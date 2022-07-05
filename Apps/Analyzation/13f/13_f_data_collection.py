@@ -1,10 +1,33 @@
-from ast import Break
+from tickers import get_source
 import matplotlib.pyplot as plt
 import os
 import csv
 import hashTable
 
 tracked_companies = []
+
+def get_ticker(company_name):
+    soup = get_source(f"https://www.google.com/search?q=ADDUSHOMECARECORP+stock")
+    print(soup)
+
+def clean_company_name(company_name):
+    company_name = company_name.upper()
+    company_name = company_name.replace(" ", "")
+    company_name = company_name.replace(".", "")
+    company_name = company_name.replace(",", "")
+    company_name = company_name.replace("-", "")
+    company_name = company_name.replace("&", "AND")
+    company_name = company_name.replace("(", "")
+    company_name = company_name.replace(")", "")
+    company_name = company_name.replace("CORPORATION", "CORP")
+    
+    return company_name
+
+
+def clear_csv(csv_file):
+    file = open(csv_file, 'r+')
+    file.truncate(0)
+    file.close()
 
 def create_2D_graph(csv_file_path, x_label, y_label, title, x_row = 0, y_row = 1):
     x = []
@@ -62,6 +85,7 @@ def collect_shares(file_arr):
                     amount_of_shares_bought = int(row[3])
                     price_per_share = act_val_of_shares/amount_of_shares_bought
                     stock = row[0]
+                    stock = clean_company_name(stock)
                     #print(f"stock: {row[0]}, value of collective shares {act_val_of_shares}, amount of shares bought {row[3]}")
                     #print(f"bought for {price_per_share}")
                     if companies_bought.get_val(stock) == None:
@@ -101,11 +125,11 @@ def collect_share_prices(file_arr):
                     amount_of_shares_bought = int(row[3])
                     price_per_share = act_val_of_shares/amount_of_shares_bought
                     stock = row[0]
-                    #print(f"stock: {row[0]}, value of collective shares {act_val_of_shares}, amount of shares bought {row[3]}")
-                    #print(f"bought for {price_per_share}")
+                    stock = clean_company_name(stock)
+                    
                     if companies_bought.get_val(stock) == None:
                         companies_bought.set_val(stock, price_per_share)
-                        tracked_companies.append(stock)
+                        
                                             
                     else:
                         tot_shares_price = companies_bought.get_val(stock)
@@ -125,6 +149,7 @@ def collect_share_prices(file_arr):
     return companies_bought
 
 if __name__ == "__main__":
+    '''
     file_arr = collect_13_f_companies_and_shares()
     cmp_shrs_tot = collect_shares(file_arr)
     shares_price_total = collect_share_prices(file_arr)
@@ -139,3 +164,7 @@ if __name__ == "__main__":
             csv_writer.writerow([comp, cmp_shrs_tot.get_val(comp), shares_price_total.get_val(comp)])
     
     create_2D_graph('shares_bought.csv', x_label='Companies', y_label='Shares Bought', title='stocks from 2022 Q1', x_row=0, y_row=1)
+    #clear_csv('shares_bought.csv')'''
+
+    get_ticker("https://google.com/search?q=geeksforgeeks")
+    

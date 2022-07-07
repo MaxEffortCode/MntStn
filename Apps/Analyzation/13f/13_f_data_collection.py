@@ -74,8 +74,8 @@ def create_full_qtr_list_of_13f(file_arr):
         try:
             with open(file, newline='') as csvfile:
                 csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                next(csv_reader)
                 for row in csv_reader:
-                    next(csv_reader)
                     try:
                        with open('13f_collection.csv', 'a', newline='') as csvfile:
                             csv_writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
@@ -104,6 +104,3 @@ if __name__ == "__main__":
     #nameOfIssuer,cusip,value,shares,sshPrnamtType,putCall,investmentDiscretion,otherManager,soleVotingAuthority,sharedVotingAuthority,noneVotingAuthority
 
     #create_2D_graph('shares_bought.csv', x_label='Companies', y_label='Shares Bought', title='stocks from 2022 Q1', x_row=0, y_row=1)
-
-
-    

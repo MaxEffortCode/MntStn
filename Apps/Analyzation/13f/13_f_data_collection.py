@@ -2,12 +2,12 @@ from tickers import get_source
 import matplotlib.pyplot as plt
 import os
 import csv
-import hashTable
+import pandas
 
 tracked_companies = []
 
 def get_ticker(company_name):
-    soup = get_source(f"https://www.google.com/search?q=ADDUSHOMECARECORP+stock")
+    soup = get_source(company_name)
     print(soup)
 
 def clean_company_name(company_name):
@@ -69,102 +69,41 @@ def collect_13_f_companies_and_shares():
     return [sub for sub in data_locations]
 
 
-
-def collect_shares(file_arr):
-    companies_bought = hashTable.HashTable(50000)
+def create_full_qtr_list_of_13f(file_arr):
     for file in file_arr:
         try:
             with open(file, newline='') as csvfile:
                 csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-                next(csv_reader)
                 for row in csv_reader:
-                    #3rd element is 'value' of shares bought in thousands so times by a 100
-                    #4th element is 'shares' shares owned so (value*1000)/(shares) = price per share they bought at
-                    act_val_of_shares = int(row[2])
-                    act_val_of_shares = act_val_of_shares*1000
-                    amount_of_shares_bought = int(row[3])
-                    price_per_share = act_val_of_shares/amount_of_shares_bought
-                    stock = row[0]
-                    stock = clean_company_name(stock)
-                    #print(f"stock: {row[0]}, value of collective shares {act_val_of_shares}, amount of shares bought {row[3]}")
-                    #print(f"bought for {price_per_share}")
-                    if companies_bought.get_val(stock) == None:
-                        companies_bought.set_val(stock, amount_of_shares_bought)
-                        tracked_companies.append(stock)
-                                            
-                    else:
-                        tot_shares_prch = companies_bought.get_val(stock)
-                        tot_shares_prch += amount_of_shares_bought
-                        companies_bought.delete_val(stock)
-                        companies_bought.set_val(stock, tot_shares_prch)
+                    next(csv_reader)
+                    try:
+                       with open('13f_collection.csv', 'a', newline='') as csvfile:
+                            csv_writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
+                            csv_writer.writerow(row)
+                    except ValueError as e:
+                        continue
                         
         except(FileNotFoundError):
             continue
         
         except(IndexError):
             continue
-        
-        except(ZeroDivisionError):
-            continue
-    
-    return companies_bought
 
+    return '13f_collection.csv'
 
-def collect_share_prices(file_arr):
-    companies_bought = hashTable.HashTable(50000)
-    for file in file_arr:
-        try:
-            with open(file, newline='') as csvfile:
-                csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-                next(csv_reader)
-                for row in csv_reader:
-                    #3rd element is 'value' of shares bought in thousands so times by a 100
-                    #4th element is 'shares' shares owned so (value*1000)/(shares) = price per share they bought at
-                    act_val_of_shares = int(row[2])
-                    act_val_of_shares = act_val_of_shares*1000
-                    amount_of_shares_bought = int(row[3])
-                    price_per_share = act_val_of_shares/amount_of_shares_bought
-                    stock = row[0]
-                    stock = clean_company_name(stock)
-                    
-                    if companies_bought.get_val(stock) == None:
-                        companies_bought.set_val(stock, price_per_share)
-                        
-                                            
-                    else:
-                        tot_shares_price = companies_bought.get_val(stock)
-                        tot_shares_price += price_per_share
-                        companies_bought.delete_val(stock)
-                        companies_bought.set_val(stock, tot_shares_price)
-                        
-        except(FileNotFoundError):
-            continue
-        
-        except(IndexError):
-            continue
-        
-        except(ZeroDivisionError):
-            continue
     
-    return companies_bought
 
 if __name__ == "__main__":
-    '''
+    clear_csv('13f_collection.csv')
     file_arr = collect_13_f_companies_and_shares()
-    cmp_shrs_tot = collect_shares(file_arr)
-    shares_price_total = collect_share_prices(file_arr)
-    tracked_companies.sort()
+    file_13f = create_full_qtr_list_of_13f(file_arr)
     
-    with open('shares_bought.csv', 'w', newline='') as csvfile:    
-        for comp in tracked_companies:
-            print(comp)
-            print(cmp_shrs_tot.get_val(comp))
-            print(shares_price_total.get_val(comp), end="\n\n")
-            csv_writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
-            csv_writer.writerow([comp, cmp_shrs_tot.get_val(comp), shares_price_total.get_val(comp)])
+    df = pandas.read_csv(file_13f, header = 0)
+    df['Total'] = df.groupby(['nameOfIssuer', 'cusip', 'sshPrnamtType', 'putCall', 'investmentDiscretion', 'otherManager', 'soleVotingAuthority', 'sharedVotingAuthority','noneVotingAuthority'])['value']['shares'].transform('sum')
     
-    create_2D_graph('shares_bought.csv', x_label='Companies', y_label='Shares Bought', title='stocks from 2022 Q1', x_row=0, y_row=1)
-    #clear_csv('shares_bought.csv')'''
+    #nameOfIssuer,cusip,value,shares,sshPrnamtType,putCall,investmentDiscretion,otherManager,soleVotingAuthority,sharedVotingAuthority,noneVotingAuthority
 
-    get_ticker("https://google.com/search?q=geeksforgeeks")
+    #create_2D_graph('shares_bought.csv', x_label='Companies', y_label='Shares Bought', title='stocks from 2022 Q1', x_row=0, y_row=1)
+
+
     

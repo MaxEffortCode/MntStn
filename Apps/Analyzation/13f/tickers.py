@@ -1,71 +1,77 @@
+from asyncio.log import logger
+from numpy import greater
 import requests
 import urllib
 import pandas as pd
 from requests_html import HTML
 from requests_html import HTMLSession
-from bs4 import BeautifulSoup
-import re
+import csv
+import time
+import random
 
-
-def format_company_info(info):
-    str_arr = info.split(" ")
-    info_arr = []
-
-    for word in str_arr:
-        if "NASDAQ" in word:
-            info_arr.append(word)
-        
-        if "NYSE" in word:
-            try:
-                ticker = re.findall(r'[A-Z]{1,5}\W[A-Z]{1,5}', word)
-                #need to learn regex
-                
-                if len(ticker):
-                    info_arr.append(f"{ticker} {len(ticker)}")
-            
-            except(ValueError):
-                continue
+def get_ticker_from_yahoo(cusip, try_number = 1):
+    time.sleep(1/10)
+    url = f'https://query1.finance.yahoo.com/v1/finance/search?q={cusip}'
+    headers = {
+    'User-Agent': 'My User Agent 1.0',
+    'From': 'youremail@domain.example'  # This is another valid field
+    }
     
-    #print(info_arr)
-    return info_arr
-
-def get_source(url):
-    """Return the source code for the provided URL. 
-
-    Args: 
-        url (string): URL of the page to scrape.
-
-    Returns:
-        response (object): HTTP response object from requests_html. 
-    """
+    request_result=requests.get(url, headers=headers)
+    logger.info(f"Getting ticker for {cusip} at {url}")
 
     try:
-        text= "ALBEMARLECORP+stock"
-        url = 'https://google.com/search?q=' + text
+        return f"{request_result.json()['quotes'][0]['symbol']}"
+    
+    except (KeyError, IndexError) as e:
+        return None
+    
+    except (requests.exceptions.ConnectionError, ValueError) as e:
+        time.sleep(2**try_number + random.random()*0.01) 
+        try_number += 1
+        if try_number >= 20:
+            return None
         
-        # Fetch the URL data using requests.get(url),
-        # store it in a variable, request_result.
-        request_result=requests.get( url )
+        return get_ticker_from_yahoo(cusip, try_number)
+
+def get_ticker_from_vanguard(cusip, try_number = 1):
+    time.sleep(1/2)
+    url = f'https://investor.vanguard.com/investment-tools/calculator-tools/marketData?query={cusip}'
+    request_result=requests.get( url )
+    logger.info(f"Getting ticker for {cusip} at {url}")
+    
+    try:
+        return f"{request_result.json()['result']['symbol']}"
+    
+    except KeyError as e:
+        return None
+    
+    except (requests.exceptions.ConnectionError, ValueError) as e:
+        time.sleep(2**try_number + random.random()*0.01) 
+        try_number += 1
+        if try_number >= 20:
+            return None
+        return get_ticker_from_vanguard(cusip, try_number)
+    
         
-        # Creating soup from the fetched request
-        soup = BeautifulSoup(request_result.text,
-                                "html.parser")
+def find_or_add_to_ticker_csv(cusip):
+    with open('csv_with_ticker.csv', 'a', newline='') as csv_file:
+        pass
+    
+    with open('csv_with_ticker.csv', 'r+', newline='') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
         
-        div = soup.find_all('div')
-
-        for div in div:
-            #we are running it through to many times
-            if "NASDAQ" in div.getText():
-                arrrr = format_company_info(div.getText())
-
-
-
-            if "NYSE" in div.getText():
-                arrrr = format_company_info(div.getText())
-
+        for row in csv_reader:
+            if cusip.upper() in row[0]:
+                return row[1]
         
-        print(arrrr)
-        return "end function"
-        
-    except requests.exceptions.RequestException as e:
-        print(f"error :  {e}")
+        csv_writer = csv.writer(csv_file, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
+        ticker = get_ticker_from_vanguard(cusip)
+        if ticker is None:
+            ticker = get_ticker_from_yahoo(cusip)
+        csv_writer.writerow([cusip.upper(), ticker])
+        return ticker
+
+def get_source(cusip):
+    ticker = find_or_add_to_ticker_csv(cusip)
+    return ticker

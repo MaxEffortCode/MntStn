@@ -27,12 +27,10 @@ def get_company_info_tuple_sec_form_crawler(line, qtr, yr):
     # 914208|Invesco Ltd.|3|2022-02-10|edgar/data/914208/0001209191-22-008399.txt
     split_line_company_info_array = line.strip().split("|")
 
-    company_name = split_line_company_info_array[1].strip()
-    company_name = company_name.replace(',', '')
-    company_name = company_name.replace(' ', '-')
+    company_cik = split_line_company_info_array[0].strip()
     company_filing = split_line_company_info_array[2]
 
-    company_info_tuple = (company_name, company_filing, qtr, yr, split_line_company_info_array)
+    company_info_tuple = (company_cik, company_filing, qtr, yr, split_line_company_info_array)
     return company_info_tuple
 # ========================================================================================
 

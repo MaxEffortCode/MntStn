@@ -3,11 +3,35 @@ from numpy import greater
 import requests
 import urllib
 import pandas as pd
-from requests_html import HTML
-from requests_html import HTMLSession
 import csv
 import time
 import random
+
+def get_cik_ticker_to_csv_from_sec(save_file = 'cik_ticker.csv', url = f'https://www.sec.gov/include/ticker.txt'):
+    url = f'https://www.sec.gov/include/ticker.txt'
+    
+    headers = {
+    'User-Agent': 'My User Agent 1.0',
+    'From': 'youremail@domain.example'  # This is another valid field
+    }
+    
+    request_result=requests.get(url, headers=headers)
+    logger.info(f"Getting cik_ticker list at {url}")
+    
+    open('cik_ticker.txt', 'wb').write(request_result.content)
+    
+    with open('cik_ticker.txt', 'r') as txt_file:
+        with open('cik_ticker.csv', 'w') as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
+            csv_writer.writerow(['ticker', 'cik'])
+            for line in txt_file:
+                line_split = line.split()
+                csv_writer.writerow([line_split[0], line_split[1]])
+    
+    
+    
+    return 'cik_ticker.csv'
+    
 
 def get_ticker_from_yahoo(cusip, try_number = 1):
     time.sleep(1/10)

@@ -1,5 +1,5 @@
 from email import header
-from tickers import get_source
+from tickers import get_source, get_cik_ticker_to_csv_from_sec
 import matplotlib.pyplot as plt
 import os
 import csv
@@ -90,12 +90,10 @@ def create_full_qtr_list_of_13f(file_arr, path):
 def read_all_copmany_names_from_edgar_master(edgar_path, save_path):
     with open(save_path, 'w', newline='') as csv_header:
         csv_writer = csv.writer(csv_header, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['nameOfIssuer','cusip','value','shares','sshPrnamtType',\
-            'putCall','investmentDiscretion','otherManager','soleVotingAuthority','sharedVotingAuthority','noneVotingAuthority'
-            ])
+        csv_writer.writerow(['cik','nameOfIssuer'])
     
     with open(edgar_path, 'r', newline='') as edgar_file:
-        with open(save_path, 'r+', newline='') as new_file:
+        with open(save_path, 'a+', newline='') as new_file:
             try:
                 for x in range(12):
                     #ignore intro lines
@@ -135,7 +133,7 @@ def match_company_names_to_cusip(collection_13f_file, save_file):
     df = df.groupby(['cusip'])
     
     with open(save_file, 'w', newline='') as csv_header:
-        headerList = ['CIK','nameOfIssuer','Ticker']
+        headerList = ['cusip','nameOfIssuer','Ticker']
         csv_writer = csv.DictWriter(csv_header, delimiter=',', 
                         fieldnames=headerList)
         csv_writer.writeheader()
@@ -156,22 +154,29 @@ def merge_cik_to_cusip(collection_cusip, collection_cik, save_file):
         for key, item in cusip_df.iterrows():
             #print(f"key: {key} item: {item['nameOfIssuer']}\n\n")
             if item['nameOfIssuer'] in cik_df.index:
-                print(f"{item['nameOfIssuer']}, {item['Ticker']}, {cik_df._get_value(item['nameOfIssuer'], 'CIK')}")
+                print(f"{key}, {item['nameOfIssuer']}, {item['Ticker']}, {cik_df._get_value(item['nameOfIssuer'], 'CIK')}")
 
     #merged_df.to_csv(path_or_buf='merged_csv.csv')
     
     return save_file
 
+def merge_cik_ticker_to_cik_company_name(cik_ticker_file, cik_comany_name_file, save_file = 'cik_name_ticker.csv'):
+    df_ticker = pandas.read_csv(cik_ticker_file, header=0, index_col='cik')
+    df_name = pandas.read_csv(cik_comany_name_file, header=0, index_col='cik')
+    df_merged = pandas.merge(df_name, df_ticker, how='outer', on=['cik'])
+    df_merged.to_csv(save_file)
+    return save_file
 
 if __name__ == "__main__":
-    #company_ciks = read_all_copmany_names_from_edgar_master('Apps/Collection/src/resources/edgar-full-index-archives/master-2020-QTR1.txt', 
-                                                            #'company_cusip_name_ticker_collection.csv')
-    
+    company_ciks = read_all_copmany_names_from_edgar_master('Apps/Collection/src/resources/edgar-full-index-archives/master-2020-QTR1.txt', 
+                                                            'cik_companyName.csv')
+    cik_ticker_csv = get_cik_ticker_to_csv_from_sec()
+    cik_name_ticker_csv = merge_cik_ticker_to_cik_company_name(cik_ticker_csv, company_ciks)
     #clear_csv('13f_collection.csv')
     #file_arr = collect_13_f_companies_and_shares()
     #file_13f = create_full_qtr_list_of_13f(file_arr, '13f_collection.csv')
-    cusip_colection = match_company_names_to_cusip('13f_collection.csv', 'company_cusip_name_ticker_collection.csv')
-    merge_cik_to_cusip('company_cusip_name_ticker_collection.csv', 'cik_companyName.csv', 'merged.csv')
+    #cusip_colection = match_company_names_to_cusip('13f_collection.csv', 'company_cusip_name_ticker_collection.csv')
+    #merge_cik_to_cusip('company_cusip_name_ticker_collection.csv', 'cik_companyName.csv', 'merged.csv')
     
 
     #df = pandas.read_csv(file_13f, header=0)

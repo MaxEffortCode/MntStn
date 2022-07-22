@@ -1,5 +1,5 @@
 from email import header
-from tickers import get_source, get_cik_ticker_to_csv_from_sec
+from .tickers import get_source, get_cik_ticker_to_csv_from_sec
 import matplotlib.pyplot as plt
 import os
 import csv
@@ -60,24 +60,35 @@ def collect_13_f_companies_and_shares():
 def create_full_qtr_list_of_13f(file_arr, path):
     with open(path, 'a', newline='') as csv_header:
         csv_writer = csv.writer(csv_header, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
-        csv_writer.writerow(['nameOfIssuer','cusip','value','shares','sshPrnamtType',\
-            'putCall','investmentDiscretion','otherManager','soleVotingAuthority','sharedVotingAuthority','noneVotingAuthority'
-            ])
+        csv_writer.writerow(['nameOfIssuer','cusip','value','shares','sshPrnamtType',
+            'putCall','investmentDiscretion','otherManager','soleVotingAuthority',
+            'sharedVotingAuthority','noneVotingAuthority','ownedBy','ownedByName'])
         
-    
+    lastCik = 0
+    lastName = 'filler'
     for file in file_arr:
         try:
             with open(file, 'r', newline='') as csvfile:
-                csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-                next(csv_reader)
-                for row in csv_reader:
-                    row[1] = row[1].upper()
-                    try:
-                       with open(path, 'a', newline='') as csvfile:
-                            csv_writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
+                with open(path, 'a', newline='') as csvfilewrite:
+                    csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+                    next(csv_reader)
+                    for row in csv_reader:
+                        row[1] = row[1].upper()
+                        ownedCompany = file.split('/')[9]
+                        row.append(ownedCompany)
+                        if lastCik == ownedCompany:
+                            row.append(lastName)
+                        else:
+                            ownedCompanyName = cik_to_company_name(ownedCompany)
+                            row.append(ownedCompanyName)
+                            lastCik = ownedCompany
+                            lastName = ownedCompanyName
+                        try:
+                        
+                            csv_writer = csv.writer(csvfilewrite,delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
                             csv_writer.writerow(row)
-                    except ValueError as e:
-                        continue
+                        except ValueError as e:
+                            continue
                         
         except(FileNotFoundError):
             continue
@@ -86,6 +97,20 @@ def create_full_qtr_list_of_13f(file_arr, path):
             continue
 
     return path
+
+
+def cik_to_company_name(cik, file_to_search='cik_companyName.csv'):
+    with open(file_to_search, 'r', newline='') as file:
+        for row in file:
+            row = row.split(',')
+            if cik == row[0]:
+                size = len(row[1])
+                # Slice string to remove last 3 characters from string
+                formated_name = row[1][:size - 3]
+                return formated_name
+    
+    return None
+
 
 def read_all_copmany_names_from_edgar_master(edgar_path, save_path):
     with open(save_path, 'w', newline='') as csv_header:
@@ -167,14 +192,17 @@ def merge_cik_ticker_to_cik_company_name(cik_ticker_file, cik_comany_name_file, 
     df_merged.to_csv(save_file)
     return save_file
 
+def merge_13f_collection_with_cik_name_ticker_csv():
+    pass
+
 if __name__ == "__main__":
     company_ciks = read_all_copmany_names_from_edgar_master('Apps/Collection/src/resources/edgar-full-index-archives/master-2020-QTR1.txt', 
                                                             'cik_companyName.csv')
     cik_ticker_csv = get_cik_ticker_to_csv_from_sec()
     cik_name_ticker_csv = merge_cik_ticker_to_cik_company_name(cik_ticker_csv, company_ciks)
     #clear_csv('13f_collection.csv')
-    #file_arr = collect_13_f_companies_and_shares()
-    #file_13f = create_full_qtr_list_of_13f(file_arr, '13f_collection.csv')
+    file_arr = collect_13_f_companies_and_shares()
+    file_13f = create_full_qtr_list_of_13f(file_arr, '13f_collection.csv')
     #cusip_colection = match_company_names_to_cusip('13f_collection.csv', 'company_cusip_name_ticker_collection.csv')
     #merge_cik_to_cusip('company_cusip_name_ticker_collection.csv', 'cik_companyName.csv', 'merged.csv')
     

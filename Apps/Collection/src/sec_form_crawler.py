@@ -79,6 +79,7 @@ for yr in years:
                     time.sleep(1/10)
                     helper.process_10q(filing_response, sec_api, company_info_tuple)
                 else:
+                    #TODO: create case for untracked filings
                     continue
 
 logger.info("Processed " + str(file_counter_13f_hr) + " 13F-HR files in master file.")

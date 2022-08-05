@@ -6,14 +6,11 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import pdfkit
 
-from shutil import ExecError
-from click import secho
 from distutils.log import debug
 from fileinput import filename
 from Apps.Collection.src.pdfTableParser import htm_to_html, read_html_pandas
 from Apps.Collection.src.api.sec_api import SecAPI
-from IPython.display import display
-from bs4 import BeautifulSoup, Doctype
+from bs4 import BeautifulSoup
 from Settings.setup_logger import logging
 from pathlib import Path
 from urllib.request import urlretrieve, build_opener, install_opener

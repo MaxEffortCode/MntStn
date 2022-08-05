@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 sec_api = SecAPI()
 
 # Setup years and quarters (1-4) of company filings to process
-years = ["2020"]
-quarters = ["1"]
+years = ["2017", "2018", "2019", "2020", "2021", "2022"]
+quarters = ["1","2","3","4"]
 
 file_counter_13f_hr = 0
 file_counter_13f_hr_amendment = 0
@@ -19,6 +19,7 @@ file_counter_10k_amendment = 0
 file_counter_10Q = 0
 file_counter_10Q_amendment = 0
 file_counter_8k = 0
+file_counter_untracked = 0
 
 #
 # Helper Methods
@@ -79,8 +80,11 @@ for yr in years:
                     time.sleep(1/10)
                     helper.process_10q(filing_response, sec_api, company_info_tuple)
                 else:
-                    #TODO: create case for untracked filings
-                    continue
+                    file_counter_untracked += 1
+                    logger.info(f"Processing {company_info_tuple[1]} 'untracked' for : {company_info_tuple[0]}\n")
+                    filing_response = sec_api.get_index_json_filing_response_for_company_api(company_info_tuple[4])
+                    time.sleep(1/10)
+                    helper.process_untracked(filing_response, sec_api, company_info_tuple)
 
 logger.info("Processed " + str(file_counter_13f_hr) + " 13F-HR files in master file.")
 logger.info("Processed " + str(file_counter_13f_hr_amendment) + " 13F-HR/A files in master file.")
@@ -88,3 +92,4 @@ logger.info("Processed " + str(file_counter_10k) + " 10-K files in master file."
 logger.info("Processed " + str(file_counter_10k_amendment) + " 10-K/A files in master file.")
 logger.info("Processed " + str(file_counter_10Q) + " 10-Q files in master file.")
 logger.info("Processed " + str(file_counter_10Q_amendment) + " 10-Q/A files in master file.")
+logger.info("Processed " + str(file_counter_untracked) + " untracked files in master file.")

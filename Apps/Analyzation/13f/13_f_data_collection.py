@@ -9,6 +9,7 @@ import time
 import requests
 from asyncio.log import logger
 import random
+import sys
 
 
 
@@ -267,6 +268,7 @@ def match_company_names_to_cusip(collection_13f_file, save_file):
         
     with open(save_file, 'a+', newline='') as save_file:
         for key, item in df:
+            print(key, item['nameOfIssuer'].iloc[0])
             csv_writer = csv.writer(save_file, delimiter=',',
                 escapechar=' ', quoting=csv.QUOTE_NONE)
             ticker = get_source(key)
@@ -274,6 +276,8 @@ def match_company_names_to_cusip(collection_13f_file, save_file):
     
     return save_file
 
+
+#TODO: csv.DictWriter instead of f.write
 def merge_cik_to_cusip(collection_cusip, collection_cik, save_file):
     cusip_df = pandas.read_csv(collection_cusip, header=0, index_col=['cusip'])
     cik_df = pandas.read_csv(collection_cik, header=0, index_col=['nameOfIssuer'])
@@ -281,8 +285,19 @@ def merge_cik_to_cusip(collection_cusip, collection_cik, save_file):
         for key, item in cusip_df.iterrows():
             #print(f"key: {key} item: {item['nameOfIssuer']}\n\n")
             if item['nameOfIssuer'] in cik_df.index:
-                print(f"{key}, {item['nameOfIssuer']}, {item['Ticker']}, {cik_df._get_value(item['nameOfIssuer'], 'CIK')}")
+                save_file.write(f"{key}, {item['nameOfIssuer']}, {item['Ticker']}, {cik_df._get_value(item['nameOfIssuer'], 'cik')}\n")
+            #TODO: put another if statement here to check if cik_df has a matching ticker
+            elif item['Ticker'] in cik_df['ticker'].values:
+                save_file.write(f"{key}, {item['nameOfIssuer']}, {item['Ticker']}, {cik_df._get_value(item['ticker'], 'cik')}\n")
+            
+            else:
+                #original_stdout = sys.stdout # Save a reference to the original standard output
+                #sys.stdout = sys.stderr # Redirect the standard output to the standard error.
+                save_file.write('This message will be displayed via the standard error.\n')
+                save_file.write(f"{key}, {item['nameOfIssuer']}, {item['Ticker']},\n")
+                #sys.stdout = original_stdout # Reset the standard output to its original value
 
+    save_file.close()
     #merged_df.to_csv(path_or_buf='merged_csv.csv')
     
     return save_file
@@ -301,12 +316,19 @@ if __name__ == "__main__":
     company_ciks = read_all_copmany_names_from_edgar_master('Apps/Collection/src/resources/edgar-full-index-archives/master-2020-QTR1.txt', 
                                                             'cik_companyName.csv')
     cik_ticker_csv = get_cik_ticker_to_csv_from_sec()
-    cik_name_ticker_csv = merge_cik_ticker_to_cik_company_name(cik_ticker_csv, company_ciks)
-    #clear_csv('13f_collection.csv')
+    #cik_name_ticker_csv = merge_cik_ticker_to_cik_company_name(cik_ticker_csv, company_ciks)
+    #run cik_name_ticker_csv through source function to get more tickers
+    
+    clear_csv('13f_collection.csv')
     file_arr = collect_13_f_companies_and_shares()
     file_13f = create_full_qtr_list_of_13f(file_arr, '13f_collection.csv')
-    #cusip_colection = match_company_names_to_cusip('13f_collection.csv', 'company_cusip_name_ticker_collection.csv')
-    #merge_cik_to_cusip('company_cusip_name_ticker_collection.csv', 'cik_companyName.csv', 'merged.csv')
+    
+    #result is a csv with cusip, company name, and ticker
+    #takes in the 13f_collection.csv and looks up ticker and returns cusip,nameOfIssuer,Ticker
+    cusip_colection = match_company_names_to_cusip('13f_collection.csv', 'cusip_name_ticker.csv')
+    
+    #meges on 
+    merge_cik_to_cusip('cusip_name_ticker.csv', 'cik_name_ticker.csv', 'merged.csv')
     
 
     #df = pandas.read_csv(file_13f, header=0)

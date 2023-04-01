@@ -32,7 +32,7 @@ def html_save(file, companyInfoTuple, file_url):
     html_file = secApi.get(file_url)
     filing_type = companyInfoTuple[1].replace("/", "")
     filing = companyInfoTuple[2].replace("/", "")
-    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{filing}"
+    path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{filing}"
     p = Path(path)
     p.mkdir(parents=True, exist_ok=True)
     
@@ -130,11 +130,11 @@ class helper:
         company_filing = companyInfoTuple[1]
         company_filing = company_filing.replace('/', '-')
 
-        path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+        path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
         p = Path(path)
         p.mkdir(parents=True, exist_ok=True)
 
-        newPath = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{company_filing}-data.csv"
+        newPath = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}/{company_filing}-data.csv"
 
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
@@ -279,7 +279,7 @@ class helper:
                     company_filing = companyInfoTuple[1]
                     company_filing = company_filing.replace('/', '-')
 
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                    path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
                     p = Path(path)
                     p.mkdir(parents=True, exist_ok=True)
 
@@ -427,7 +427,7 @@ class helper:
                     company_filing = companyInfoTuple[1]
                     company_filing = company_filing.replace('/', '-')
 
-                    path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+                    path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
                     p = Path(path)
                     p.mkdir(parents=True, exist_ok=True)
 
@@ -437,21 +437,21 @@ class helper:
                     
         return financialStatementList
 
-    def process_8k(filingFile, sec_api, company_info_tuple):
+    def process_8k(filingFile, sec_api, companyInfoTuple):
         filesCreatedList = []
         for file in filingFile.json()['directory']['item']:
             file_url = sec_api.baseUrl + filingFile.json()['directory']['name'] + "/" + file['name']
 
             # Some company filings have a forward slash like amendments
             # Using a forward slash in path name will break and isn't allowed so change to -
-            company_filing = company_info_tuple[1]
+            company_filing = companyInfoTuple[1]
             company_filing = company_filing.replace('/', '-')
             
             file_path_extension = file['name']
             file_path_extension = file_path_extension.split('.')
             file_path_extension = file_path_extension[0]
             
-            path = f"{os.path.dirname(__file__)}/resources/companies/{company_info_tuple[0]}/filings/{company_filing}-filing/{company_info_tuple[3]}/{company_info_tuple[2]}"
+            path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
             p = Path(path)
             try:
                 if '.pdf' in file['name']:
@@ -495,7 +495,7 @@ class helper:
             file_url = secApi.baseUrl + \
                         filingFile.json()['directory']['name'] + "/" + file['name']
             
-            path = f"{os.path.dirname(__file__)}/resources/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}"
+            path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
             p = Path(path)
             try:
                 file_name = file['name']

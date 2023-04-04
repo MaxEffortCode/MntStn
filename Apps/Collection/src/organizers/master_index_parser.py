@@ -5,8 +5,10 @@ import csv
 
 #class that handles the master index file
 class master_index_parser:
-    def __init__(self, master_index_file_path, year, quarter):
-        self.master_index_file_path = master_index_file_path
+    def __init__(self, year, quarter):
+        path = f"{os.path.dirname(__file__)}/../resources/edgar-full-index-archives"
+        edgarIndexFileDownloadPath = f"{path}/master-{year}-QTR{quarter}.txt"
+        self.master_index_file_path = edgarIndexFileDownloadPath
         self.year = year
         self.quarter = quarter
         self.master_index_file = open(self.master_index_file_path, "r")
@@ -94,13 +96,33 @@ class master_index_parser:
         
         #merge arrays into one array split by [] and return
         return [cik_array, company_name_array, form_type_array, date_filed_array, filename_array]
+    
+    #function that takes in self
+    #it grabs the CIK, Company Name,
+    #it only appends the CIK and Company Name to the csv file if the CIK is not already in the csv file
+    #the csv file is saved under lookup file path
+    def index_to_csv_no_duplicates(self):
+        lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/lookup.csv"
+        with open(lookup_file_path, 'a') as csv_file:
+            writer = csv.writer(csv_file)
+            company_list_start = self.set_line(self.index_begin_company_list())
             
+            for line in company_list_start:
+                line_split = line.split("|")
+                line_split[-1] = line_split[-1].strip()
+                if line_split[0] not in open(lookup_file_path).read():
+                    writer.writerow([line_split[0], line_split[1]])
+            
+            print("Wrote to CSV file: " + lookup_file_path)
+            csv_file.close()
+        
+        return lookup_file_path
+                
 
 
 if __name__ == '__main__':
     #the path is ../resources/edgar-full-index-archives/master-2017-QTR1.txt
-    master_index_file_path = os.path.join(os.path.dirname(__file__), "../resources/edgar-full-index-archives/master-2017-QTR1.txt")
-    test = master_index_parser(master_index_file_path, 2017, 1)
+    test = master_index_parser(2017, 1)
     print(test.get_next_line())
     print(test.index_begin_company_list())
     print(test.create_arrays(cik=True, company_name=True, form_type=True, date_filed=True, filename=True))
@@ -110,3 +132,4 @@ if __name__ == '__main__':
         os.makedirs(os.path.dirname(file_save_path))
         print(f"made directory: {file_save_path}")
     print(test.index_to_csv(file_save_path + "master_index.csv"))
+    print(test.index_to_csv_no_duplicates())

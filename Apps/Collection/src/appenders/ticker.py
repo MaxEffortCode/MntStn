@@ -10,7 +10,41 @@ import random
 
 #class that works on finding and appending tickers
 class Ticker:
-    def __init__(self):
+    def __init__(self, year, quarter):
+        self.cik = None
+        self.ticker = None
+        self.company_name = None
+        self.cusip = None
+        self.year = year
+        self.quarter = quarter
+    
+    def __str__(self):
+        return f"CIK: {self.cik}, Ticker: {self.ticker}, Company Name: {self.company_name}, CUSIP: {self.cusip}"
+    
+    def __repr__(self):
+        return f"CIK: {self.cik}, Ticker: {self.ticker}, Company Name: {self.company_name}, CUSIP: {self.cusip}"
+
+
+    def get_sec_tickers(self):
+        url = f'https://www.sec.gov/include/ticker.txt'
+    
+        headers = {
+        'User-Agent': 'My User Agent 1.0',
+        'From': 'youremail@domain.example'  # This is another valid field
+        }
+        
+        request_result=requests.get(url, headers=headers)         
+        open('cik_ticker.txt', 'wb').write(request_result.content)
+
+
+    def get_ticker_from_sec(self):
+        #TODO: https://www.sec.gov/include/ticker.txt has a giant list to compare to
+
+        self.ticker = get_ticker_from_yahoo(self.cusip)
+        if self.ticker == None:
+            self.ticker = get_ticker_from_vanguard(self.cusip)
+        
+        return self.ticker
         
 
 
@@ -108,3 +142,7 @@ def find_or_add_to_ticker_csv(cusip):
 def get_source(cusip):
     ticker = find_or_add_to_ticker_csv(cusip)
     return ticker
+
+if __name__ == "__main__":
+    test = Ticker(2017, 1)
+    test.get_sec_tickers()

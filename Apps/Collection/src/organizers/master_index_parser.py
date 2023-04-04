@@ -107,11 +107,20 @@ class master_index_parser:
             writer = csv.writer(csv_file)
             company_list_start = self.set_line(self.index_begin_company_list())
             
+            old = ""
             for line in company_list_start:
                 line_split = line.split("|")
-                line_split[-1] = line_split[-1].strip()
-                if line_split[0] not in open(lookup_file_path).read():
+                new = line_split[0]
+
+                while new == old:
+                    line_split = company_list_start.readline().split("|")
+                    new = line_split[0]
+
+                old = new
+                try:
                     writer.writerow([line_split[0], line_split[1]])
+                except(IndexError):
+                    break
             
             print("Wrote to CSV file: " + lookup_file_path)
             csv_file.close()

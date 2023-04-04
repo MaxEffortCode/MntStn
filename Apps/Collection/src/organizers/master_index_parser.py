@@ -5,8 +5,10 @@ import csv
 
 #class that handles the master index file
 class master_index_parser:
-    def __init__(self, master_index_file_path):
+    def __init__(self, master_index_file_path, year, quarter):
         self.master_index_file_path = master_index_file_path
+        self.year = year
+        self.quarter = quarter
         self.master_index_file = open(self.master_index_file_path, "r")
         print("Created an master_index_parser object\n with Master Index File Path: " + self.master_index_file_path)
 
@@ -35,6 +37,31 @@ class master_index_parser:
             self.master_index_file.readline()
         
         return self.master_index_file
+    
+    '''
+    This function will take in a csv file path and will write the data from the master index file to the csv
+    it will use csv reader to read the master index file starting at index_begin_company_list
+    from there each line will be split by the | character and the data will be appended to the csv
+    '''
+    def index_to_csv(self, csv_path):
+        with open(csv_path, 'a') as csv_file:
+            writer = csv.writer(csv_file)
+            csv_file.truncate(0)
+            writer.writerow(["CIK","Company Name","Form Type","Date Filed","Filename"])
+            company_list_start = self.set_line(self.index_begin_company_list())
+            
+            for line in company_list_start:
+                line_split = line.split("|")
+                line_split[-1] = line_split[-1].strip()
+                #strip any ""
+                #TODO: there is a bug where if the company name has a . at the end it will be be given quotes
+                line_split = [x.strip('"') for x in line_split]
+                writer.writerow(line_split)
+            
+            print("Wrote to CSV file: " + csv_path)
+            csv_file.close()
+            
+        return csv_path 
     
     def update_master_index_file(self, new_index_file_path):
         self.master_index_file.close()
@@ -72,9 +99,14 @@ class master_index_parser:
 
 if __name__ == '__main__':
     #the path is ../resources/edgar-full-index-archives/master-2017-QTR1.txt
-    master_index_file_path = os.path.join(os.path.dirname(__file__), "../resources/edgar-full-index-archives/master-test-file.txt")
-    master_index_file = master_index_parser(master_index_file_path)
-    print(master_index_file.get_next_line())
-    print(master_index_file.index_begin_company_list())
-    print(master_index_file.create_arrays(cik=True, company_name=True, form_type=True, date_filed=True, filename=True))
-    
+    master_index_file_path = os.path.join(os.path.dirname(__file__), "../resources/edgar-full-index-archives/master-2017-QTR1.txt")
+    test = master_index_parser(master_index_file_path, 2017, 1)
+    print(test.get_next_line())
+    print(test.index_begin_company_list())
+    print(test.create_arrays(cik=True, company_name=True, form_type=True, date_filed=True, filename=True))
+
+    file_save_path = f"/home/max/MntStn/Apps/Collection/src/organizers/../resources/{test.year}/{test.quarter}/master_index/"
+    if not os.path.exists(os.path.dirname(file_save_path)):
+        os.makedirs(os.path.dirname(file_save_path))
+        print(f"made directory: {file_save_path}")
+    print(test.index_to_csv(file_save_path + "master_index.csv"))

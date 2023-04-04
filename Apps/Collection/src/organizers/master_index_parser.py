@@ -1,7 +1,7 @@
 #CIK|Company Name|Form Type|Date Filed|Filename
 
 import os
-import time
+import csv
 
 #class that handles the master index file
 class master_index_parser:
@@ -44,16 +44,11 @@ class master_index_parser:
         
     #returns array(s) from selected CIK[0]|Company Name[1]|Form Type[2]|Date Filed[3]|Filename[4]
     def create_arrays(self, cik=False, company_name=False, form_type=False, date_filed=False, filename=False):
-        if cik:
-            cik_array = []
-        if company_name:
-            company_name_array = []
-        if form_type:
-            form_type_array = []
-        if date_filed:
-            date_filed_array = []
-        if filename:
-            filename_array = []
+        cik_array = []
+        company_name_array = []
+        form_type_array = []
+        date_filed_array = []
+        filename_array = []
         
         company_list_start = self.set_line(self.index_begin_company_list())
         

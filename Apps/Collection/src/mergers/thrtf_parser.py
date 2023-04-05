@@ -14,7 +14,7 @@ class ThrtFParser:
         self.year = year
         self.quarter = quarter
         self.files = []
-        self.path = os.path.join(os.path.dirname(__file__), "../resources/" + self.year + "/" + self.quarter + "/companies")
+        self.path = os.path.join(os.path.dirname(__file__), f"../resources/{self.year}/{self.quarter}/companies")
         #self.parseData()
 
     def get_thrtf_files(self):
@@ -28,14 +28,14 @@ class ThrtFParser:
     
     def update_year(self, year):
         self.year = year
-        self.path = os.path.join(os.path.dirname(__file__), "../resources/" + self.year + "/" + self.quarter + "/companies")
+        self.path = os.path.join(os.path.dirname(__file__), f"../resources/{self.year}/{self.quarter}/companies")
         print(f"\nupdated with year: {self.year} \nnew file path: {self.path}\n")
         self.get_thrtf_files()
         return self.path
     
     def update_quarter(self, quarter):
         self.quarter = quarter
-        self.path = os.path.join(os.path.dirname(__file__), "../resources/" + self.year + "/" + self.quarter + "/companies")
+        self.path = os.path.join(os.path.dirname(__file__), f"../resources/{self.year}/{self.quarter}/companies")
         print(f"\nupdated with quarter: {self.quarter} \nnew file path: {self.path}\n")
         self.get_thrtf_files()
         return self.path
@@ -45,10 +45,16 @@ class ThrtFParser:
     #function that will run get_thrtf_files and parse the data into an a csv
     #it will take in the path to save the csv to
     #if the csv already exists, it will append the data to the csv without the first line
-    def merge_thrtf_files(self, csv_path):
+    def merge_thrtf_files(self):
         #get all the files
         self.get_thrtf_files()
         #open the csv file
+        file_save_path = f"/home/max/MntStn/Apps/Collection/src/organizers/../resources/{self.year}/{self.quarter}/13f-collections/"
+        #make the directory if it doesn't exist
+        if not os.path.exists(os.path.dirname(file_save_path)):
+            os.makedirs(os.path.dirname(file_save_path))
+            print(f"made directory: {file_save_path}")
+        csv_path = os.path.join(os.path.dirname(__file__), f"{file_save_path}/13F-HR-data-{self.year}-{self.quarter}.csv")
         with open(csv_path, 'a') as csv_file:
             #create the writer
             writer = csv.writer(csv_file)
@@ -76,14 +82,10 @@ class ThrtFParser:
         return csv_path
     
 if __name__ == "__main__":
-    test = ThrtFParser("2017", "1")
+    test = ThrtFParser(2017, 1)
     print(test.get_thrtf_files())
-    print(test.update_year("2017"))
-    print(test.update_quarter("1"))
+    print(test.update_year(2017))
+    print(test.update_quarter(1))
     file_save_path = f"/home/max/MntStn/Apps/Collection/src/organizers/../resources/{test.year}/{test.quarter}/13f-collections/"
     #make the directory if it doesn't exist
-    if not os.path.exists(os.path.dirname(file_save_path)):
-        os.makedirs(os.path.dirname(file_save_path))
-        print(f"made directory: {file_save_path}")
-    file_save_path = os.path.join(os.path.dirname(__file__), file_save_path)
-    print(test.merge_thrtf_files(os.path.join(os.path.dirname(__file__), file_save_path + "13f-collections.csv")))
+    print(test.merge_thrtf_files())

@@ -102,6 +102,10 @@ class master_index_parser:
     #it only appends the CIK and Company Name to the csv file if the CIK is not already in the csv file
     #the csv file is saved under lookup file path
     def index_to_csv_no_duplicates(self):
+        look_up_dir = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup"
+        #create lookup directory if it does not exist
+        if not os.path.exists(look_up_dir):
+            os.makedirs(look_up_dir)
         lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/lookup.csv"
         with open(lookup_file_path, 'a') as csv_file:
             writer = csv.writer(csv_file)

@@ -45,8 +45,15 @@ class master_index_parser:
     it will use csv reader to read the master index file starting at index_begin_company_list
     from there each line will be split by the | character and the data will be appended to the csv
     '''
-    def index_to_csv(self, csv_path):
-        with open(csv_path, 'a') as csv_file:
+    def index_to_csv(self):
+        look_up_dir = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/13f_collection"
+        #create lookup directory if it does not exist
+        if not os.path.exists(look_up_dir):
+            os.makedirs(look_up_dir)
+        lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/13f_collection/master.csv"
+        
+        
+        with open(lookup_file_path, 'a') as csv_file:
             writer = csv.writer(csv_file)
             csv_file.truncate(0)
             writer.writerow(["CIK","Company Name","Form Type","Date Filed","Filename"])
@@ -60,10 +67,10 @@ class master_index_parser:
                 line_split = [x.strip('"') for x in line_split]
                 writer.writerow(line_split)
             
-            print("Wrote to CSV file: " + csv_path)
+            print("Wrote to CSV file: " + lookup_file_path)
             csv_file.close()
             
-        return csv_path 
+        return lookup_file_path 
     
     def update_master_index_file(self, new_index_file_path):
         self.master_index_file.close()

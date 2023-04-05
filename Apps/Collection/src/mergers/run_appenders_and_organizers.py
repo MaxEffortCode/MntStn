@@ -1,5 +1,12 @@
 import sys
-import master_index_parser, thrtf_parser, ticker
+import path
+
+directory = path.Path(__file__).abspath()
+print(directory)
+sys.path.append(directory.parent.parent)
+from organizers import master_index_parser, thrtf_parser
+from appenders import ticker
+
 
 # class that runs the appenders and organizers
 # over every company directory in the resources folder

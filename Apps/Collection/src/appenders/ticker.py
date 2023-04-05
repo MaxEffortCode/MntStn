@@ -69,6 +69,37 @@ class Ticker:
         os.remove(lookup_file_path)
         
         return lookup_file_path_csv
+    
+    #function that gets the runs get_sec_tickers() and then appends the tickers to the cik_name.csv file and saves it as cik_name_ticker.csv
+    def append_tickers_to_cik_name(self):
+        #get the tickers
+        tickers_file_path = self.get_sec_tickers()
+        
+        #get the cik_name.csv file
+        cik_name_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/cik_name.csv"
+        
+        #open the cik_name.csv file
+        cik_name_df = pd.read_csv(cik_name_file_path)
+        
+        #open the tickers.csv file
+        tickers_df = pd.read_csv(tickers_file_path)
+        
+        #merge the two files matching every cik from tickers.csv to cik_name.csv and
+        # if there is no match, then it will be ignored
+        cik_name_ticker_df = pd.merge(cik_name_df, tickers_df, how='left', on='cik')
+        
+        #sort the dataframe by company name
+        cik_name_ticker_df = cik_name_ticker_df.sort_values(by=['company Name'])
+        
+        #save the file
+        cik_name_ticker_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/cik_name_ticker.csv"
+        #delete the file if it already exists
+        if os.path.exists(cik_name_ticker_file_path):
+            os.remove(cik_name_ticker_file_path)
+        cik_name_ticker_df.to_csv(cik_name_ticker_file_path, index=False)
+        
+        
+        return cik_name_ticker_file_path
 
         
 
@@ -171,3 +202,4 @@ def get_source(cusip):
 if __name__ == "__main__":
     test = Ticker(2017, 1)
     test.get_sec_tickers()
+    print(test.append_tickers_to_cik_name())

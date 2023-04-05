@@ -56,7 +56,7 @@ class master_index_parser:
         with open(lookup_file_path, 'a') as csv_file:
             writer = csv.writer(csv_file)
             csv_file.truncate(0)
-            writer.writerow(["CIK","Company Name","Form Type","Date Filed","Filename"])
+            writer.writerow(["cik","company Name","form type","date filed","filename"])
             company_list_start = self.set_line(self.index_begin_company_list())
             
             for line in company_list_start:
@@ -113,9 +113,13 @@ class master_index_parser:
         #create lookup directory if it does not exist
         if not os.path.exists(look_up_dir):
             os.makedirs(look_up_dir)
-        lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/CIK_Name.csv"
+        lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/cik_name.csv"
+        
         with open(lookup_file_path, 'a') as csv_file:
+            
             writer = csv.writer(csv_file)
+            csv_file.truncate(0)
+            writer.writerow(["cik","company Name"])
             company_list_start = self.set_line(self.index_begin_company_list())
             
             old = ""
@@ -137,6 +141,40 @@ class master_index_parser:
             csv_file.close()
         
         return lookup_file_path
+    
+    def index_to_csv_no_duplicates_companies(self):
+        look_up_dir = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup"
+        #create lookup directory if it does not exist
+        if not os.path.exists(look_up_dir):
+            os.makedirs(look_up_dir)
+        lookup_file_path = f"{os.path.dirname(__file__)}/../resources/{self.year}/{self.quarter}/lookup/name.csv"
+        
+        with open(lookup_file_path, 'a') as csv_file:
+            
+            writer = csv.writer(csv_file)
+            csv_file.truncate(0)
+            writer.writerow(["company Name"])
+            company_list_start = self.set_line(self.index_begin_company_list())
+            
+            old = ""
+            for line in company_list_start:
+                line_split = line.split("|")
+                new = line_split[0]
+
+                while new == old:
+                    line_split = company_list_start.readline().split("|")
+                    new = line_split[0]
+
+                old = new
+                try:
+                    writer.writerow([line_split[1]])
+                except(IndexError):
+                    break
+            
+            print("Wrote to CSV file: " + lookup_file_path)
+            csv_file.close()
+        
+        return lookup_file_path
                 
 
 
@@ -151,5 +189,6 @@ if __name__ == '__main__':
     if not os.path.exists(os.path.dirname(file_save_path)):
         os.makedirs(os.path.dirname(file_save_path))
         print(f"made directory: {file_save_path}")
-    print(test.index_to_csv(file_save_path + "master_index.csv"))
+    print(test.index_to_csv())
     print(test.index_to_csv_no_duplicates())
+    print(test.index_to_csv_no_duplicates_companies())

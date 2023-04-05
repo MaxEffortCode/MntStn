@@ -22,10 +22,12 @@ class run_appenders_and_organizers:
     #function that runs the appenders and organizers
     #over every company directory in the resources folder
     def run(self):
-        self.ticker.get_sec_tickers()
+        
         self.master_index_parser.index_to_csv()
         self.master_index_parser.index_to_csv_no_duplicates()
+        self.master_index_parser.index_to_csv_no_duplicates_companies()
         self.thrtf_parser.merge_thrtf_files()
+        self.ticker.append_tickers_to_cik_name()
     
 if __name__ == '__main__':
     #run the appenders and organizers

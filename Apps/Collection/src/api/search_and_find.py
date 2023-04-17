@@ -139,7 +139,7 @@ class SearchAndFind:
             reader = csv.reader(csv_file)
             for row in reader:
                 name_array.append(row[1])
-                if row[1] == name.upper():
+                if row[1].upper() == name.upper():
                     return row[0]
             
             print(f"Name not found: {name}")
@@ -149,7 +149,7 @@ class SearchAndFind:
             print(f"Closest match: {closest_match}")
             if closest_match is not None:
                 return self.search_name(closest_match)
-            
+
             return None
 
     def search_ticker(self, ticker):
@@ -174,7 +174,7 @@ class SearchAndFind:
 
 
 if __name__ == "__main__":
-    search = SearchAndFind(2017, 1,)
+    search = SearchAndFind(2017, 1)
     print(search.search_cik('946563'))
     print(search.search_ticker('AAPL'))
     print(search.search_name('BINdwawd'))

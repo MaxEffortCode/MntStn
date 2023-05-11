@@ -31,4 +31,7 @@ class run_appenders_and_organizers:
     
 if __name__ == '__main__':
     #run the appenders and organizers
-    run_appenders_and_organizers(2017, 1).run()
+    run_appenders_and_organizers(2020, 1).run()
+    run_appenders_and_organizers(2020, 2).run()
+    run_appenders_and_organizers(2020, 3).run()
+    run_appenders_and_organizers(2020, 4).run()

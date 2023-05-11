@@ -31,7 +31,11 @@ def html_save(file, companyInfoTuple, file_url):
     secApi = SecAPI()
     html_file = secApi.get(file_url)
     filing_type = companyInfoTuple[1].replace("/", "")
-    filing = companyInfoTuple[2].replace("/", "")
+
+    if isinstance(companyInfoTuple[2], str):
+        filing = companyInfoTuple[2].replace("/", "")
+    else:
+        filing = companyInfoTuple[2]
     path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{filing_type}/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{filing}"
     p = Path(path)
     p.mkdir(parents=True, exist_ok=True)

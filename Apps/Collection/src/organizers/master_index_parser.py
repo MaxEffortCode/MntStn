@@ -180,7 +180,7 @@ class master_index_parser:
 
 if __name__ == '__main__':
     #the path is ../resources/edgar-full-index-archives/master-2017-QTR1.txt
-    test = master_index_parser(2017, 1)
+    test = master_index_parser(2020, 1)
     print(test.get_next_line())
     print(test.index_begin_company_list())
     print(test.create_arrays(cik=True, company_name=True, form_type=True, date_filed=True, filename=True))

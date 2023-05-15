@@ -1,6 +1,8 @@
 import requests
 import logging
 import time
+import sys
+
 from Settings.setup_logger import logging
 
 LOGGER = logging.getLogger(__name__)
@@ -28,7 +30,7 @@ class SecAPI:
         LOGGER.info(f"Performing GET on: {url}")
         return response
 
-    # This is frequently used for most company fil-ing forms
+    # This is frequently used for most company filing forms
     def get_index_json_filing_response_for_company_api(self, companyInfo):
         url = f"{self.baseUrl}/Archives/{companyInfo[4]}"
         url = url.replace('-','').replace('.txt', '/index.json')

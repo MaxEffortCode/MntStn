@@ -537,3 +537,14 @@ class helper:
                 time.sleep(10)
 
         return filesCreatedList
+    
+    def get_company_info_tuple(line, qtr, yr):
+        # 914208|Invesco Ltd.|3|2022-02-10|edgar/data/914208/0001209191-22-008399.txt
+        split_line_company_info_array = line.strip().split("|")
+
+        company_cik = split_line_company_info_array[0].strip()
+        company_filing = split_line_company_info_array[2]
+
+        company_info_tuple = (company_cik, company_filing, qtr,
+                            yr, split_line_company_info_array)
+        return company_info_tuple

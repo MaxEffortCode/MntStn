@@ -4,19 +4,22 @@ import time
 import sys
 import csv
 import traceback
+#export PYTHONPATH=/media/max/2AB8BBD1B8BB99B1/MntStn:$PYTHONPATH
 from sec_api import SecAPI
 from Settings.setup_logger import logging
 from Apps.Collection.src.helper import helper
+from Apps.Collection.src.organizers.master_index_parser import master_index_parser
 
 logger = logging.getLogger(__name__)
 sec_api = SecAPI()
 
 class FileReqHandler:
-    def __init__(self, year, quarter, cik, filing_type=None):
+    #maybe we should just instantiate it using the year and quarter
+    #and then have a method that takes in the cik and filing type
+    #along with a method that takes in the company name or ticker
+    def __init__(self, year, quarter):
         self.year = year
         self.quarter = quarter
-        self.cik = cik
-        self.filing_type = filing_type
         self.edgar_path = f"Apps/Collection/src/resources/edgar-full-index-archives/master-{year}-QTR{quarter}.txt"
 
     def __repr__(self):
@@ -39,14 +42,14 @@ class FileReqHandler:
             response, self.quarter, self.year)
         
         
-    def get_file(self, cik=None, filing_type=None):
-        if cik is None:
-            cik = self.cik
+    def get_file_cik(self, cik, filing_type=None):
         #check if the directory exists for Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}
         #if it does not exist create it
         if not os.path.exists(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}"):
             os.makedirs(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}")
         
+        #CIK|Company Name|Form Type|Date Filed|Filename
+
         #get edgar index file
         with open(self.edgar_path) as file:
             #save all lines that match the cik
@@ -126,11 +129,10 @@ class FileReqHandler:
             
         #return the file path
         
+        
 
 if __name__ == "__main__":
-    file_req_handler = FileReqHandler("2017", "1", "1000045")
-    
-    #get the file
-    file_req_handler.get_file()
-    
+    file_req_handler = FileReqHandler("2017", "1")
+    file_req_handler.get_file_cik("1000045", "13F-HR")
+
             

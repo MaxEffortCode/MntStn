@@ -2,6 +2,7 @@
 
 import os
 import csv
+import time
 
 #class that handles the master index file
 class master_index_parser:
@@ -157,19 +158,24 @@ class master_index_parser:
             company_list_start = self.set_line(self.index_begin_company_list())
             
             old = ""
-            for line in company_list_start:
-                line_split = line.split("|")
-                new = line_split[0]
-
-                while new == old:
-                    line_split = company_list_start.readline().split("|")
+            try:
+                for line in company_list_start:
+                    line_split = line.split("|")
                     new = line_split[0]
 
-                old = new
-                try:
-                    writer.writerow([line_split[1]])
-                except(IndexError):
-                    break
+                    while new == old:
+                        line_split = company_list_start.readline().split("|")
+                        new = line_split[0]
+
+                    old = new
+                    try:
+                        writer.writerow([line_split[1]])
+                    except(IndexError):
+                        break
+            except(UnicodeDecodeError):
+                print("UnicodeDecodeError")
+
+                
             
             print("Wrote to CSV file: " + lookup_file_path)
             csv_file.close()
@@ -180,6 +186,7 @@ class master_index_parser:
 
 if __name__ == '__main__':
     #the path is ../resources/edgar-full-index-archives/master-2017-QTR1.txt
+    """ 
     test = master_index_parser(2020, 1)
     print(test.get_next_line())
     print(test.index_begin_company_list())
@@ -192,3 +199,10 @@ if __name__ == '__main__':
     print(test.index_to_csv())
     print(test.index_to_csv_no_duplicates())
     print(test.index_to_csv_no_duplicates_companies())
+     """
+    for i in range(1993, 2023):
+        for j in range(1, 5):
+            test = master_index_parser(i, j)
+            print(test.index_to_csv_no_duplicates_companies())
+            time.sleep(1/10)
+            

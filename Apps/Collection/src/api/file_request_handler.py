@@ -4,6 +4,7 @@ import time
 import sys
 import csv
 import traceback
+from polyfuzz import PolyFuzz
 #export PYTHONPATH=/media/max/2AB8BBD1B8BB99B1/MntStn:$PYTHONPATH
 from sec_api import SecAPI
 from Settings.setup_logger import logging
@@ -21,20 +22,30 @@ class FileReqHandler:
         self.year = year
         self.quarter = quarter
         self.edgar_path = f"Apps/Collection/src/resources/edgar-full-index-archives/master-{year}-QTR{quarter}.txt"
-
+        self.model = PolyFuzz.load(f"Apps/Collection/src/resources/{year}/{quarter}/models/c_name_model")
+        
     def __repr__(self):
         return f"FileReqHandler({self.year}, {self.quarter})"
     
     def update_year(self, year):
         self.year = year
         self.edgar_path = f"Apps/Collection/src/resources/edgar-full-index-archives/master-{year}-QTR{self.quarter}.txt"
+        self.model = PolyFuzz.load(f"Apps/Collection/src/resources/{year}/{self.quarter}/models/c_name_model")
     
     def update_quarter(self, quarter):
         self.quarter = quarter
         self.edgar_path = f"Apps/Collection/src/resources/edgar-full-index-archives/master-{self.year}-QTR{quarter}.txt"
-    
+        self.model = PolyFuzz.load(f"Apps/Collection/src/resources/{self.year}/{quarter}/models/c_name_model")
+        
     def update_cik(self, cik):
         self.cik = cik
+    
+    def update_filing_type(self, filing_type):
+        self.filing_type = filing_type
+    
+    def update_model(self, model_path):
+        model = PolyFuzz.load(model_path)
+        self.model = model
 
     def download_master_edgar_index_file(self):
         response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(self.quarter, self.year)
@@ -128,11 +139,33 @@ class FileReqHandler:
             logger.error(traceback.format_exc())
             
         #return the file path
+    
+    def get_file_company_name(self, company_name, filing_type=None):
+        search_term = [company_name]
+        result = self.model.transform(search_term)
+        result = result['TF-IDF'].values[0][1]
+        print(result)
+        with open(self.edgar_path) as file:
+            #save all lines that match the cik
+            lines = [line for i, line in enumerate(file) if i >= 14 and result.upper() in line.split("|")[1]]
+            for line in lines:
+                if filing_type is None:
+                    continue
+                if line.split("|")[2] != filing_type:
+                    lines.remove(line)
+        
+        print(f"Found {len(lines)} filings for {company_name}")
+        for line in lines:
+            print(f"Processing {line}")
+        
+        return lines
+        
         
         
 
 if __name__ == "__main__":
-    file_req_handler = FileReqHandler("2017", "1")
-    file_req_handler.get_file_cik("1000045", "13F-HR")
+    file_req_handler = FileReqHandler("2018", "2")
+    #file_req_handler.get_file_cik("1000045", "13F-HR")
+    file_req_handler.get_file_company_name("NICHOLAS FINANCIAL INC")
 
             

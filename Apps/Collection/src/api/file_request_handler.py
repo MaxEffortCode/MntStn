@@ -102,6 +102,7 @@ class FileReqHandler:
                     #print(f"\n****Filing response is {filing_response.content}****\n")
 
                     file_path = helper().process_13f_hr(filing_response, company_info_tuple)
+                    print(f"\n****File path is {file_path}****\n")
                     file_paths.append(file_path)
                 elif(company_info_tuple[1] == "13F-HR/A"):
                     logger.info(
@@ -158,6 +159,7 @@ class FileReqHandler:
             logger.error(traceback.format_exc())
             
         #return the file path
+        return file_paths
     
     #lines = [line for i, line in enumerate(file) if i >= 14 and result.upper() in line.split("|")[1]]
     def get_file_company_name(self, company_name, filing_type=None):

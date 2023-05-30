@@ -1,10 +1,11 @@
 import socket
 import threading
 from Apps.Collection.src.api.file_request_handler import FileReqHandler
+import os
 
 ### Server Side ###
 HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65433        # The port used by the server
+PORT = 65432        # The port used by the server
 
 def handle_client(conn, addr):
     print('Connected by', addr)
@@ -18,11 +19,23 @@ def handle_client(conn, addr):
             company_cik = file_req_handler.get_file_company_name("BROOKFIELD ASSET MANAGEMENT INC.")
             file_path = file_req_handler.get_file_cik(company_cik, "13F-HR")
             #print file path
-            print(f"Sending to {addr}: {file_path}")
+            print(f"\n**** Saved to {file_path} ****\n")
+            
+            #send the file located at file_path to the client
 
+            
+            with open(file_path[0], 'rb') as f:
+                data = f.read()
+            
+            if data:
+                conn.sendall(data)
+                return
+            else:
+                print("No data")
+                return
 
-            print(f"Sending to {addr}: {file_req_handler.get_file_company_name('META GROUP INC')}")
-            conn.sendall(file_req_handler.get_file_company_name('META GROUP INC').encode())
+            #print(f"Sending to {addr}: {file_req_handler.get_file_company_name('BROOKFIELD ASSET MANAGEMENT INC.')}")
+            #conn.sendall(file_req_handler.get_file_company_name('BROOKFIELD ASSET MANAGEMENT INC.').encode())
             #conn.sendall(data)
 
 if __name__ == '__main__':

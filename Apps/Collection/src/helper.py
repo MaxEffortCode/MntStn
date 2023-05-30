@@ -1,8 +1,11 @@
 import csv
+import gzip
 import re
 import os
+import shutil
 import time
 import xml.etree.ElementTree as ET
+from zipfile import ZipFile
 import pandas as pd
 import pdfkit
 
@@ -122,7 +125,6 @@ class helper:
     def process_13f_hr(self, filingFile, companyInfoTuple):
         print(f"filing response: {filingFile.content}")
         pattern = b'<(.*?)informationTable\s|<informationTable'
-        pattern = b'<(.*?)informationTable\s|<informationTable'
         matchInformationTableStart = re.search(pattern, filingFile.content)
         print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
         #time.sleep(3)
@@ -138,18 +140,28 @@ class helper:
         company_filing = companyInfoTuple[1]
         company_filing = company_filing.replace('/', '-')
 
-        path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}"
+        path = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings"
         p = Path(path)
         p.mkdir(parents=True, exist_ok=True)
 
-        newPath = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-filing/{companyInfoTuple[3]}/{companyInfoTuple[2]}/{companyInfoTuple[2]}/{company_filing}-data.csv"
+        newPath = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-data.csv"
+
 
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
                 writer.writerow(headerLine)
                 for child in root:
                     self.process_13f_hr_subtree(child, writer)
-        return newPath
+        
+        #make a compressed version of the file
+        with open(newPath, 'rb') as f_in:
+            with gzip.open(f'{newPath}.gz', 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        
+        #return the path to the compressed file
+        return f'{newPath}.gz'
+
+        #return newPath
 
 
 

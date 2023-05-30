@@ -120,12 +120,16 @@ class helper:
         writer.writerow(line)
 
     def process_13f_hr(self, filingFile, companyInfoTuple):
+        print(f"filing response: {filingFile.content}")
+        pattern = b'<(.*?)informationTable\s|<informationTable'
         pattern = b'<(.*?)informationTable\s|<informationTable'
         matchInformationTableStart = re.search(pattern, filingFile.content)
+        print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
+        #time.sleep(3)
 
         pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
         match2InformationTableEnd = re.search(pattern2, filingFile.content)
-
+        #ERROR fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
         fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
         root = ET.fromstring(fileByteString.decode())
 

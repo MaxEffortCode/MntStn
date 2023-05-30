@@ -4,8 +4,10 @@ import time
 import sys
 import csv
 import traceback
+import time
 from polyfuzz import PolyFuzz
 #export PYTHONPATH=/media/max/2AB8BBD1B8BB99B1/MntStn:$PYTHONPATH
+
 from sec_api import SecAPI
 from Settings.setup_logger import logging
 from Apps.Collection.src.helper import helper
@@ -54,6 +56,9 @@ class FileReqHandler:
         
         
     def get_file_cik(self, cik, filing_type=None):
+        logger.info(f"\nGetting file for {cik} and filing type {filing_type}\n")
+        time.sleep(1)
+
         #check if the directory exists for Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}
         #if it does not exist create it
         if not os.path.exists(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}"):
@@ -61,16 +66,27 @@ class FileReqHandler:
         
         #CIK|Company Name|Form Type|Date Filed|Filename
 
+
         #get edgar index file
         with open(self.edgar_path) as file:
             #save all lines that match the cik
             lines = [line for line in file if cik in line.split("|")[0]]
-            for line in lines:
-                if filing_type is None:
-                    continue
-                if line.split("|")[2] != filing_type:
-                    lines.remove(line)
+            logger.info(f"\nFound {len(lines)} filings for {cik} the lines are {lines}\n")
+            lines_user_requested = []
         
+            if filing_type is None:
+                lines_user_requested = lines
+            else:
+                for line in lines:
+                    if line.split("|")[2] == filing_type:
+                        lines_user_requested.append(line)
+            
+            #terrible code practice butt fuck it
+            lines = lines_user_requested
+        
+            logger.info(f"\nAfter filtering for filing type {filing_type} there are {len(lines_user_requested)} filings for {cik} the lines are: {lines_user_requested}\n")
+    
+
         #need to add a list to store the file paths
         file_paths = []
         try: 
@@ -79,10 +95,12 @@ class FileReqHandler:
                 if(company_info_tuple[1] == "13F-HR"):
                     logger.info(
                         f"Processing 13F-HR for : {company_info_tuple[0]}\n")
-                    #goes to sec page and sets filing_response to the sec response
+                    #goes to sec page and sets filing_response to the response from edgar
                     filing_response = sec_api.get_13f_hr_filing_for_company_api(
                         company_info_tuple[4])
-                    time.sleep(1/10)
+                    
+                    #print(f"\n****Filing response is {filing_response.content}****\n")
+
                     file_path = helper().process_13f_hr(filing_response, company_info_tuple)
                     file_paths.append(file_path)
                 elif(company_info_tuple[1] == "13F-HR/A"):
@@ -91,7 +109,8 @@ class FileReqHandler:
                     filing_response = sec_api.get_13f_hr_filing_for_company_api(
                         company_info_tuple[4])
                     time.sleep(1/10)
-                    helper().process_13f_hr(filing_response, company_info_tuple)
+                    file_paths.append(helper().process_13f_hr(filing_response, company_info_tuple))
+                    #helper().process_13f_hr(filing_response, company_info_tuple)
                 elif(company_info_tuple[1] == "10-K"):
                     logger.info(
                         f"Processing 10-K for : {company_info_tuple[0]}\n")

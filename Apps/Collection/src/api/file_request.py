@@ -11,18 +11,33 @@ def handle_client(conn, addr):
     print('Connected by', addr)
     with conn:
         while True:
-            data = conn.recv(1024)
+            data = conn.recv(2048)
             if not data:
                 break
             print(f'Received from {addr}: {data}')
-            file_req_handler = FileReqHandler("2019", "4")
-            company_cik = file_req_handler.get_file_company_name("BROOKFIELD ASSET MANAGEMENT INC.")
-            file_path = file_req_handler.get_file_cik(company_cik, "13F-HR")
-            #print file path
-            print(f"\n**** Saved to {file_path} ****\n")
-            
-            #send the file located at file_path to the client
+            #data_tuple = data.decode().split(",")
+            #print(f"Data tuple: {data_tuple}")
+            search_type, search_term, year, quarter = data.decode().split(',')
+            file_req_handler = FileReqHandler(year, quarter)
 
+            if search_type == "name":
+                company_cik = file_req_handler.get_file_company_name(f"{search_term}")
+                file_path = file_req_handler.get_file_cik(company_cik, "13F-HR")
+            
+            elif search_type == "cik":
+                company_cik = search_term
+                file_path = file_req_handler.get_file_cik(company_cik, "13F-HR")
+
+            elif search_type == "ticker":
+                conn.sendall(b'No ticker support yet')
+                return False
+
+            else:
+                conn.sendall(b'Invalid search type. Valid search types are: name, cik, ticker')
+                return False
+                
+            #file_path = file_req_handler.get_file_cik(company_cik, "13F-HR")
+            print(f"\n**** Saved to {file_path} ****\n")
             
             with open(file_path[0], 'rb') as f:
                 data = f.read()

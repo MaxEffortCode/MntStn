@@ -1,8 +1,5 @@
 import os
-import itertools
 import time
-import sys
-import csv
 import traceback
 import time
 from polyfuzz import PolyFuzz
@@ -70,6 +67,8 @@ class FileReqHandler:
         #get edgar index file
         with open(self.edgar_path) as file:
             #save all lines that match the cik
+            #this is slow and needs fixing
+            #mayube store the cik by line number and use fseek to locate the correct position
             lines = [line for line in file if cik in line.split("|")[0]]
             logger.info(f"\nFound {len(lines)} filings for {cik} the lines are {lines}\n")
             lines_user_requested = []
@@ -95,15 +94,22 @@ class FileReqHandler:
                 if(company_info_tuple[1] == "13F-HR"):
                     logger.info(
                         f"Processing 13F-HR for : {company_info_tuple[0]}\n")
+                    #if the file already exists, just send the file
+                    if os.path.exists(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}/filings/13F-HR-data.csv.gz"):
+                        file_paths.append(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}/filings/13F-HR-data.csv.gz")
+                        print(f"\n****found file is {file_paths}****\n")
+
+                        continue
+                        
+
                     #goes to sec page and sets filing_response to the response from edgar
                     filing_response = sec_api.get_13f_hr_filing_for_company_api(
                         company_info_tuple[4])
                     
-                    #print(f"\n****Filing response is {filing_response.content}****\n")
-
                     file_path = helper().process_13f_hr(filing_response, company_info_tuple)
                     print(f"\n****File path is {file_path}****\n")
                     file_paths.append(file_path)
+
                 elif(company_info_tuple[1] == "13F-HR/A"):
                     logger.info(
                         f"Processing 13F-HR/A for : {company_info_tuple[0]}\n")

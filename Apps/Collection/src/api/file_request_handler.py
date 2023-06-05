@@ -242,6 +242,9 @@ class FileReqHandler:
         try: 
             for line in lines:
                 company_info_tuple = helper.get_company_info_tuple(line, self.quarter, self.year)
+                #TODO: implement a file processor that will process the file
+                #file = file_processor()
+
                 if(company_info_tuple[1] == "13F-HR"):
                     logger.info(
                         f"Processing 13F-HR for : {company_info_tuple[0]}\n")

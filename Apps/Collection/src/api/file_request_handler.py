@@ -2,6 +2,7 @@ import os
 import time
 import traceback
 import time
+import pickle
 from polyfuzz import PolyFuzz
 #export PYTHONPATH=/media/max/2AB8BBD1B8BB99B1/MntStn:$PYTHONPATH
 
@@ -10,8 +11,149 @@ from Settings.setup_logger import logging
 from Apps.Collection.src.helper import helper
 from Apps.Collection.src.organizers.master_index_parser import master_index_parser
 
+
 logger = logging.getLogger(__name__)
 sec_api = SecAPI()
+
+def get_lines_from_file(file_path, line_numbers):
+    lines = []
+
+    with open(file_path, 'r') as file:
+        for line_num in line_numbers:
+            file.seek(0)  # Reset the file position indicator to the beginning of the file
+            for _ in range(line_num - 1):
+                file.readline()  # Skip preceding lines
+            line = file.readline()  # Read the desired line
+            lines.append(line)
+
+    return lines
+
+def file_processor(company_info_tuple, cik, fileRequestHandler):
+    file_path = None
+
+    if(company_info_tuple[1] == "13F-HR"):
+        logger.info(
+            f"Processing 13F-HR for : {company_info_tuple[0]}\n")
+        #if the file already exists, just send the file
+        if os.path.exists(f"Apps/Collection/src/resources/{fileRequestHandler.get_year()}/{fileRequestHandler.get_quarter()}/companies/{cik}/filings/13F-HR-data.csv.gz"):
+            file_path = (f"Apps/Collection/src/resources/{fileRequestHandler.get_year()}/{fileRequestHandler.get_quarter()}/companies/{cik}/filings/13F-HR-data.csv.gz")
+            print(f"\n****found file is {file_path}****\n")
+            return file_path
+            
+
+        #goes to sec page and sets filing_response to the response from edgar
+        filing_response = sec_api.get_13f_hr_filing_for_company_api(
+            company_info_tuple[4])
+        
+        file_path = helper().process_13f_hr(filing_response, company_info_tuple)
+        print(f"\n****File path is {file_path}****\n")
+        return file_path
+
+    elif(company_info_tuple[1] == "13F-HR/A"):
+        logger.info(
+            f"Processing 13F-HR/A for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_13f_hr_filing_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        file_path = helper().process_13f_hr(filing_response, company_info_tuple)
+        #helper().process_13f_hr(filing_response, company_info_tuple)
+    elif(company_info_tuple[1] == "10-K"):
+        logger.info(
+            f"Processing 10-K for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_index_json_filing_response_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        helper.process_10k(
+            filing_response, sec_api, company_info_tuple)
+    elif(company_info_tuple[1] == "10-K/A"):
+        logger.info(
+            f"Processing 10-K/A for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_index_json_filing_response_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        helper.process_10k(
+            filing_response, sec_api, company_info_tuple)
+    elif(company_info_tuple[1] == "10-Q"):
+        logger.info(
+            f"Processing 10-Q for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_index_json_filing_response_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        helper.process_10q(
+            filing_response, sec_api, company_info_tuple)
+    elif(company_info_tuple[1] == "10-Q/A"):
+        logger.info(
+            f"Processing 10-Q/A for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_index_json_filing_response_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        helper.process_10q(
+            filing_response, sec_api, company_info_tuple)
+    else:
+        logger.info(
+            f"Processing {company_info_tuple[1]} 'untracked' for : {company_info_tuple[0]}\n")
+        filing_response = sec_api.get_index_json_filing_response_for_company_api(
+            company_info_tuple[4])
+        #time.sleep(1/10)
+        helper.process_untracked(
+            filing_response, sec_api, company_info_tuple)
+
+
+
+class EdgarIndexFileHandler:
+    def __init__(self):
+        pass
+    
+    def get_pickled_index(self, fileReqHandler):
+        #check if the pickled index exists
+        #if it does, return it
+        if os.path.exists(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl"):
+            with open(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl", 'rb') as f:
+                return pickle.load(f)
+
+        try:
+            response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(fileReqHandler.get_quarter(), fileReqHandler.get_year())
+            edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(
+                response, fileReqHandler.get_quarter(), fileReqHandler.get_year())
+            
+            index = {}
+            with open(edgar_index_file_path, 'r') as file:
+                for line_num, line in enumerate(file, start=1):
+                    number = line.split('|')[0]
+                    if number in index:
+                        index[number].append(line_num)
+                    else:
+                        index[number] = [line_num]
+
+            with open(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl", 'wb') as f:
+                pickle.dump(index, f)
+            
+            with open(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl", 'rb') as f:
+                return pickle.load(f)
+
+
+        except Exception as e:
+            logger.error(f"Error getting pickled edgar index: {e}")
+            traceback.print_exc()
+            return False
+    
+    def search_index(self, fileReqHandler, cik, filing_type=None):
+        #check if the pickled index exists
+        #if it does, return it
+        if os.path.exists(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl"):
+            with open(f"Apps/Collection/src/resources/{fileReqHandler.get_year()}/{fileReqHandler.get_quarter()}/lookup/index.pkl", 'rb') as f:
+                index = pickle.load(f)
+        else:
+            index = self.get_pickled_index(fileReqHandler)
+        
+        if cik in index:
+            return index[cik]
+        else:
+            return False
+
+        
+
+
 
 class FileReqHandler:
     #maybe we should just instantiate it using the year and quarter
@@ -22,9 +164,23 @@ class FileReqHandler:
         self.quarter = quarter
         self.edgar_path = f"Apps/Collection/src/resources/edgar-full-index-archives/master-{year}-QTR{quarter}.txt"
         self.model = PolyFuzz.load(f"Apps/Collection/src/resources/{year}/{quarter}/models/mnt_model")
+        self.index_file_handler = EdgarIndexFileHandler()
+        self.pickle_index = self.index_file_handler.get_pickled_index(self)
         
     def __repr__(self):
         return f"FileReqHandler({self.year}, {self.quarter})"
+    
+    def __str__(self):
+        return f"FileReqHandler({self.year}, {self.quarter})"
+    
+    def get_pickle_index(self):
+        return self.pickle_index
+
+    def get_year(self):
+        return self.year
+    
+    def get_quarter(self):
+        return self.quarter
     
     def update_year(self, year):
         self.year = year
@@ -46,15 +202,8 @@ class FileReqHandler:
         model = PolyFuzz.load(model_path)
         self.model = model
 
-    def download_master_edgar_index_file(self):
-        response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(self.quarter, self.year)
-        edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(
-            response, self.quarter, self.year)
-        
-        
     def get_file_cik(self, cik, filing_type=None):
         logger.info(f"\nGetting file for {cik} and filing type {filing_type}\n")
-        time.sleep(1)
 
         #check if the directory exists for Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}
         #if it does not exist create it
@@ -63,28 +212,30 @@ class FileReqHandler:
         
         #CIK|Company Name|Form Type|Date Filed|Filename
 
+        #search the pickled index for the cik
+        index_lines = self.index_file_handler.search_index(self, cik, filing_type)
+        if index_lines is False:
+            logger.info(f"\nNo filings found for {cik} and filing type {filing_type}\n")
+            return False
+        
+        print(f"\nFound {len(index_lines)} filings for {cik} and filing type {filing_type}\n")
+        print(f"\nThe lines are {index_lines}\n")
+        
+        #go to the index lines in the edgar index file
+        lines = get_lines_from_file(self.edgar_path, index_lines)
+        lines_user_requested = []
+        if filing_type is None:
+                lines = lines
+        else:
+            for line in lines:
+                if line.split("|")[2] == filing_type:
+                    lines_user_requested.append(line)
 
-        #get edgar index file
-        with open(self.edgar_path) as file:
-            #save all lines that match the cik
-            #this is slow and needs fixing
-            #mayube store the cik by line number and use fseek to locate the correct position
-            lines = [line for line in file if cik in line.split("|")[0]]
-            logger.info(f"\nFound {len(lines)} filings for {cik} the lines are {lines}\n")
-            lines_user_requested = []
-        
-            if filing_type is None:
-                lines_user_requested = lines
-            else:
-                for line in lines:
-                    if line.split("|")[2] == filing_type:
-                        lines_user_requested.append(line)
-            
-            #terrible code practice butt fuck it
             lines = lines_user_requested
+           
         
-            logger.info(f"\nAfter filtering for filing type {filing_type} there are {len(lines_user_requested)} filings for {cik} the lines are: {lines_user_requested}\n")
-    
+        print(f"\nThe lines are {lines}\n")
+
 
         #need to add a list to store the file paths
         file_paths = []
@@ -98,7 +249,6 @@ class FileReqHandler:
                     if os.path.exists(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}/filings/13F-HR-data.csv.gz"):
                         file_paths.append(f"Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}/filings/13F-HR-data.csv.gz")
                         print(f"\n****found file is {file_paths}****\n")
-
                         continue
                         
 
@@ -202,5 +352,11 @@ class FileReqHandler:
 
 if __name__ == "__main__":
     file_req_handler = FileReqHandler("2004", "1")
+
+    pickled_index = file_req_handler.get_pickle_index()
+    print(f"Pickled index is")
+    irst2vals = [print(f"pickled_index[k] is {k}") for k in sorted(pickled_index.values())[300:309]]
+
     #file_req_handler.get_file_cik("1000045", "13F-HR")
-    file_req_handler.get_file_company_name("META GROUP INC")
+    company_cik = file_req_handler.get_file_company_name("META GROUP INC")
+    company_list = file_req_handler.get_file_cik(company_cik, "13F-HR")

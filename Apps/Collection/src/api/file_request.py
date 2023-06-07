@@ -5,7 +5,7 @@ import os
 
 ### Server Side ###
 HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65434        # The port used by the server
+PORT = 65437       # The port used by the server
 
 def handle_client(conn, addr):
     print('Connected by', addr)

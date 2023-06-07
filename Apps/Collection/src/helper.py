@@ -72,7 +72,7 @@ class helper:
                 logger.info("Error downloading and processing the Edgar Index file - rerun as it now most likely contains corrupted data: %s - %s." % (e.filename, e.strerror))
         return edgarIndexFileDownloadPath
 
-    def process_13f_hr_subtree(self, subtree, writer):
+    def process_13f_hr_subtree_post_y13_q2(self, subtree, writer):
         nameOfIssuer = ''
         cusip = ''
         value = ''
@@ -122,18 +122,34 @@ class helper:
         line = [nameOfIssuer, cusip, value, shares, sshPrnamtType, putCall, investmentDiscretion, otherManager, soleVotingAuthority, sharedVotingAuthority, noneVotingAuthority]
         writer.writerow(line)
 
+    #TODO: breaks on dates earlier than Q3 2013
     def process_13f_hr(self, filingFile, companyInfoTuple):
-        print(f"filing response: {filingFile.content}")
-        pattern = b'<(.*?)informationTable\s|<informationTable'
-        matchInformationTableStart = re.search(pattern, filingFile.content)
-        print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
-        #time.sleep(3)
+        #('1000742', '13F-HR', '1', '2013', ['1000742', 'SANDLER CAPITAL MANAGEMENT', '13F-HR', '2013-02-14', 'edgar/data/1000742/0000898432-13-000218.txt']))
+        #1000097|KINGDON CAPITAL MANAGEMENT, L.L.C.|13F-HR|2013-08-15|edgar/data/1000097/0000919574-13-005176.txt
 
-        pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
+        #if the filing is from 2013 Q3 or later, we need to use a different pattern to find the start of the informationTable
+        if int(companyInfoTuple[3]) >= 2013 and (int(companyInfoTuple[2]) > 2 or int(companyInfoTuple[3]) > 2013):
+            pattern = b'<(.*?)informationTable\s|<informationTable'
+            pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
+        else:
+            pattern = b'<C>\n'
+            pattern2 = b'</TABLE>\n|</table>\n'
+        
+
+        matchInformationTableStart = re.search(pattern, filingFile.content)
         match2InformationTableEnd = re.search(pattern2, filingFile.content)
+
+        print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
+        print(f"\n****matchInformationTableEnd: {match2InformationTableEnd}****\n")
+
+        
         #ERROR fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
+        #error is because older documetns have html not xml
         fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
         root = ET.fromstring(fileByteString.decode())
+
+        print(f"\n****root: {root}****\n")
+        time.sleep(50)
 
         headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion", "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
 
@@ -146,12 +162,20 @@ class helper:
 
         newPath = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-data.csv"
 
+        
 
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
                 writer.writerow(headerLine)
                 for child in root:
-                    self.process_13f_hr_subtree(child, writer)
+                    if int(companyInfoTuple[3]) >= 2013 and (int(companyInfoTuple[2]) > 2 or int(companyInfoTuple[3]) > 2013):
+                        print("Processing 13F-HR filing date is later than 2013 Q3")
+                        time.sleep(30)
+                        self.process_13f_hr_subtree_post_y13_q2(child, writer)
+                    else:
+                        print("ERROR: 13F-HR filing date is earlier than 2013 Q3")
+                        print(f"\n!!!!!!!!!!!!!!! {int(companyInfoTuple[3].strip('-'))}\n")
+                        time.sleep(30)
         
         #make a compressed version of the file
         with open(newPath, 'rb') as f_in:

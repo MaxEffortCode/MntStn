@@ -121,6 +121,37 @@ class helper:
         nameOfIssuer = nameOfIssuer.replace(",", "")
         line = [nameOfIssuer, cusip, value, shares, sshPrnamtType, putCall, investmentDiscretion, otherManager, soleVotingAuthority, sharedVotingAuthority, noneVotingAuthority]
         writer.writerow(line)
+    
+    def process_13f_hr_subtree_pre_y13_q2(self, fileByteString, writer):
+        for line in fileByteString:
+            testLine = line
+            print(f"\n****testLine: {testLine}****\n")
+            nameOfIssuer = testLine[:26].strip()
+            titleOfClass = testLine[26:42].strip()
+            cusip = testLine[42:54].strip()
+            value = testLine[54:66].strip()
+            shares = testLine[66:76].strip()
+            shOrPrn = testLine[76:80].strip()
+            putOrCall = testLine[80:89].strip()
+            investDisc = testLine[89:101].strip()
+            otherManager = testLine[101:109].strip()
+            voteAuthSole = testLine[109:120].strip()
+            voteAuthShared = testLine[120:127].strip()
+            voteAuthNone = testLine[127:128].strip()
+            print(f"\n****nameOfIssuer: {nameOfIssuer}****\n")
+            print(f"\n****titleOfClass: {titleOfClass}****\n")
+            print(f"\n****cusip: {cusip}****\n")
+            print(f"\n****value: {value}****\n")
+            print(f"\n****shares: {shares}****\n")
+            print(f"\n****shOrPrn: {shOrPrn}****\n")
+            print(f"\n****putOrCall: {putOrCall}****\n")
+            print(f"\n****investDisc: {investDisc}****\n")
+            print(f"\n****otherManager: {otherManager}****\n")
+            print(f"\n****voteAuthSole: {voteAuthSole}****\n")
+            print(f"\n****voteAuthShared: {voteAuthShared}****\n")
+            print(f"\n****voteAuthNone: {voteAuthNone}****\n")
+            line = [nameOfIssuer, titleOfClass, cusip, value, shares, shOrPrn, putOrCall, investDisc, otherManager, voteAuthSole, voteAuthShared, voteAuthNone]
+            writer.writerow(line)
 
     #TODO: breaks on dates earlier than Q3 2013
     def process_13f_hr(self, filingFile, companyInfoTuple):
@@ -131,13 +162,32 @@ class helper:
         if int(companyInfoTuple[3]) >= 2013 and (int(companyInfoTuple[2]) > 2 or int(companyInfoTuple[3]) > 2013):
             pattern = b'<(.*?)informationTable\s|<informationTable'
             pattern2 = b'</(\w*):informationTable>|</informationTable>.*?'
+            matchInformationTableStart = re.search(pattern, filingFile.content)
+            match2InformationTableEnd = re.search(pattern2, filingFile.content)
+            fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
+            root = ET.fromstring(fileByteString.decode())
+            print(f"\n****root: {root}****\n")
+
+                    
         else:
             pattern = b'<C>\n'
             pattern2 = b'</TABLE>\n|</table>\n'
+            matchInformationTableStart = re.search(pattern, filingFile.content)
+            match2InformationTableEnd = re.search(pattern2, filingFile.content)
+            fileByteString = filingFile.content[(matchInformationTableStart.start()+4): (match2InformationTableEnd.end()-10)]
+            #take the fileByteString and convert it to a string
+            fileByteString = fileByteString.decode()
+            #split the string into a list of lines using the newline character as the delimiter
+            fileByteString = fileByteString.split('\n')
+            
+
+
+
+            #print(f"\n****fileByteString: {fileByteString}****\n")
+
         
 
-        matchInformationTableStart = re.search(pattern, filingFile.content)
-        match2InformationTableEnd = re.search(pattern2, filingFile.content)
+        
 
         print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
         print(f"\n****matchInformationTableEnd: {match2InformationTableEnd}****\n")
@@ -145,11 +195,8 @@ class helper:
         
         #ERROR fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
         #error is because older documetns have html not xml
-        fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
-        root = ET.fromstring(fileByteString.decode())
-
-        print(f"\n****root: {root}****\n")
-        time.sleep(50)
+        
+        
 
         headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion", "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
 
@@ -167,15 +214,15 @@ class helper:
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
                 writer.writerow(headerLine)
-                for child in root:
-                    if int(companyInfoTuple[3]) >= 2013 and (int(companyInfoTuple[2]) > 2 or int(companyInfoTuple[3]) > 2013):
+                
+                if int(companyInfoTuple[3]) >= 2013 and (int(companyInfoTuple[2]) > 2 or int(companyInfoTuple[3]) > 2013):
+                    for child in root:
                         print("Processing 13F-HR filing date is later than 2013 Q3")
-                        time.sleep(30)
                         self.process_13f_hr_subtree_post_y13_q2(child, writer)
-                    else:
-                        print("ERROR: 13F-HR filing date is earlier than 2013 Q3")
-                        print(f"\n!!!!!!!!!!!!!!! {int(companyInfoTuple[3].strip('-'))}\n")
-                        time.sleep(30)
+                else:
+                    self.process_13f_hr_subtree_pre_y13_q2(fileByteString, writer)
+                    print("13F-HR filing date is earlier than 2013 Q3")
+                        
         
         #make a compressed version of the file
         with open(newPath, 'rb') as f_in:

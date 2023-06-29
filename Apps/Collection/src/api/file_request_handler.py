@@ -6,7 +6,7 @@ import pickle
 from polyfuzz import PolyFuzz
 #export PYTHONPATH=/media/max/2AB8BBD1B8BB99B1/MntStn:$PYTHONPATH
 
-from sec_api import SecAPI
+from Apps.Collection.src.api.sec_api import SecAPI
 from Settings.setup_logger import logging
 from Apps.Collection.src.helper import helper
 from Apps.Collection.src.organizers.master_index_parser import master_index_parser
@@ -204,6 +204,7 @@ class FileReqHandler:
 
     def get_file_cik(self, cik, filing_type=None):
         logger.info(f"\nGetting file for {cik} and filing type {filing_type}\n")
+        print(f"****\nGetting file for {cik} and filing type {filing_type}****\n")
 
         #check if the directory exists for Apps/Collection/src/resources/{self.year}/{self.quarter}/companies/{cik}
         #if it does not exist create it

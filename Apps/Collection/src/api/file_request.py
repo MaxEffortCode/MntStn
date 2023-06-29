@@ -1,11 +1,16 @@
 import socket
 import threading
+import time
+#exec(open("Apps/Collection/src/api/file_request.py").read())
+#export PYTHONPATH=/home/max/Mountain_Stone_LLC/MntStn:$PYTHONPATH
+#from file_request_handler import FileReqHandler
 from Apps.Collection.src.api.file_request_handler import FileReqHandler
-import os
+#from file_request_handler import FileReqHandler
 
 ### Server Side ###
-HOST = '127.0.0.1'  # The server's hostname or IP address
-PORT = 65437       # The port used by the server
+#HOST = '127.0.0.1'  # The server's hostname or IP address
+HOST = '0.0.0.0'
+PORT = 8000       # The port used by the server
 
 def handle_client(conn, addr):
     print('Connected by', addr)
@@ -51,6 +56,8 @@ def handle_client(conn, addr):
 
 
 if __name__ == '__main__':
+    print("Starting server...")
+    time.sleep(0.2)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()

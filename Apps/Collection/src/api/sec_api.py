@@ -1,8 +1,8 @@
 import requests
 import logging
-import time
-import sys
-
+#import time
+#import sys
+#maybe try 
 from Settings.setup_logger import logging
 
 LOGGER = logging.getLogger(__name__)

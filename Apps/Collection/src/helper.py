@@ -88,35 +88,40 @@ class helper:
         for child in subtree:
             startIndex = child.tag.find('}')
             childTag = child.tag[startIndex + 1:]
-            if ((child.text == None) and (isinstance(child.attrib, dict)) and (isinstance(child, ET.Element)) or (child.text.isspace())):
+            
+            if (
+                (child.text is None or child.text.isspace())
+                and isinstance(child.attrib, dict)
+                and isinstance(child, ET.Element)
+            ):
                 for nestedChild in child:
                     startIndex = nestedChild.tag.find('}')
                     nestedChildTag = nestedChild.tag[startIndex + 1:]
-                    match nestedChildTag:
-                        case 'sshPrnamt':
-                            shares = nestedChild.text
-                        case 'sshPrnamtType':
-                            sshPrnamtType = nestedChild.text
-                        case 'Sole':
-                            soleVotingAuthority = nestedChild.text
-                        case 'Shared':
-                            sharedVotingAuthority = nestedChild.text
-                        case 'None':
-                            noneVotingAuthority = nestedChild.text
+                    
+                    if nestedChildTag == 'sshPrnamt':
+                        shares = nestedChild.text
+                    elif nestedChildTag == 'sshPrnamtType':
+                        sshPrnamtType = nestedChild.text
+                    elif nestedChildTag == 'Sole':
+                        soleVotingAuthority = nestedChild.text
+                    elif nestedChildTag == 'Shared':
+                        sharedVotingAuthority = nestedChild.text
+                    elif nestedChildTag == 'None':
+                        noneVotingAuthority = nestedChild.text
             else:
-                match childTag:
-                    case 'nameOfIssuer':
-                        nameOfIssuer = child.text
-                    case 'cusip':
-                        cusip = child.text
-                    case 'value':
-                        value = child.text
-                    case 'investmentDiscretion':
-                        investmentDiscretion = child.text
-                    case 'putCall':
-                        putCall = child.text
-                    case 'otherManager':
-                        otherManager = child.text
+                if childTag == 'nameOfIssuer':
+                    nameOfIssuer = child.text
+                elif childTag == 'cusip':
+                    cusip = child.text
+                elif childTag == 'value':
+                    value = child.text
+                elif childTag == 'investmentDiscretion':
+                    investmentDiscretion = child.text
+                elif childTag == 'putCall':
+                    putCall = child.text
+                elif childTag == 'otherManager':
+                    otherManager = child.text
+
 
         nameOfIssuer = nameOfIssuer.replace(",", "")
         line = [nameOfIssuer, cusip, value, shares, sshPrnamtType, putCall, investmentDiscretion, otherManager, soleVotingAuthority, sharedVotingAuthority, noneVotingAuthority]
@@ -179,24 +184,6 @@ class helper:
             fileByteString = fileByteString.decode()
             #split the string into a list of lines using the newline character as the delimiter
             fileByteString = fileByteString.split('\n')
-            
-
-
-
-            #print(f"\n****fileByteString: {fileByteString}****\n")
-
-        
-
-        
-
-        print(f"\n****matchInformationTableStart: {matchInformationTableStart}****\n")
-        print(f"\n****matchInformationTableEnd: {match2InformationTableEnd}****\n")
-
-        
-        #ERROR fileByteString = filingFile.content[matchInformationTableStart.start(): match2InformationTableEnd.end()]
-        #error is because older documetns have html not xml
-        
-        
 
         headerLine = ["nameOfIssuer", "cusip", "value", "shares", "sshPrnamtType", "putCall", "investmentDiscretion", "otherManager", "soleVotingAuthority", "sharedVotingAuthority", "noneVotingAuthority"]
 
@@ -208,8 +195,6 @@ class helper:
         p.mkdir(parents=True, exist_ok=True)
 
         newPath = f"{os.path.dirname(__file__)}/resources/{companyInfoTuple[3]}/{companyInfoTuple[2]}/companies/{companyInfoTuple[0]}/filings/{company_filing}-data.csv"
-
-        
 
         with open(newPath, 'w',  newline='') as out_file:
                 writer = csv.writer(out_file)
@@ -231,9 +216,6 @@ class helper:
         
         #return the path to the compressed file
         return f'{newPath}.gz'
-
-        #return newPath
-
 
 
 

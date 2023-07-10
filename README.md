@@ -55,18 +55,7 @@ Woohoo! Run the form scraper script. You can now run the main script of this pro
 python3.10 -m Apps.Collection.src.sec_form_crawler
 ```
 
-We run it this way so that we don’t ever have to resort to path hacks, as launching scripts directly from where they are located will set the Python “path” to that directory. Doing it like above gives us consistent and predictable imports to use in each module.
-
-## 4. Deactivate your virtual environment when all is done (technically optional but is advised)
-```
-Deactivate
-```
-
-# TLDR; - Configuring the Development Environment
-1. Install Python, weasyprint’s required libraries, and configure PATH properly
-2. Create virtual environment and activate it
-3. Launch the form scraper script with the command: “python3 -m Apps.Collection.src.sec_form_crawler”
-4. Deactivate your virtual environment
+d37096232ed8: Waiting . Deactivate your virtual environment
 
 # Running the test suite
 ## Install pytest
@@ -81,4 +70,12 @@ python3.10 -m pytest
 To run individual tests:
 ```
 python3.10 -m pytest <path_to_repo>/MntStn/Apps/Collection/tests/test_helper.py::<test_function_to_run>
+```
+
+# How to set up a Docker container:
+
+```
+sudo dockerd
+sudo docker build -t myapp:latest .
+sudo docker run -it -p 8000:8000 myapp:latest
 ```

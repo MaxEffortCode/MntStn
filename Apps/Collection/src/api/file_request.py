@@ -1,4 +1,5 @@
 import socket
+import sys
 import threading
 import time
 #exec(open("Apps/Collection/src/api/file_request.py").read())
@@ -9,7 +10,8 @@ from Apps.Collection.src.api.file_request_handler import FileReqHandler
 
 ### Server Side ###
 #HOST = '127.0.0.1'  # The server's hostname or IP address
-HOST = '0.0.0.0'
+#HOST = '0.0.0.0'
+HOST = '34.125.225.88'
 PORT = 8000       # The port used by the server
 
 def handle_client(conn, addr):
@@ -58,6 +60,16 @@ def handle_client(conn, addr):
 if __name__ == '__main__':
     print("Starting server...")
     time.sleep(0.2)
+    
+    if len(sys.argv) > 1:
+        HOST = sys.argv[1]
+        PORT = int(sys.argv[2])
+    
+    else:
+        HOST = input("Enter host IP: ")
+        PORT = int(input("Enter port: "))
+
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()

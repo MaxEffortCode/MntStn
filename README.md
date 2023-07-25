@@ -78,4 +78,22 @@ python3.10 -m pytest <path_to_repo>/MntStn/Apps/Collection/tests/test_helper.py:
 sudo dockerd
 sudo docker build -t myapp:latest .
 sudo docker run -it -p 8000:8000 myapp:latest
+docker push gcr.io/tester-391021/myapp:latest
+docker build -t gcr.io/tester-391021/myapp:latest .
+docker run -it -p 8000:8000 gcr.io/tester-391021/myapp:latest
+exec(open("Apps/Collection/src/api/file_request.py").read())
 ```
+you can promote an epherial IP to a static IP 
+https://console.cloud.google.com/networking/addresses/list?project=tester-391021
+
+Using 0.0.0.0:22 ()
+
+To log into gcloud from local:
+gcloud compute ssh --zone "us-west4-b" "instance-4" --project "tester-391021"\
+
+
+///////
+try bring up a second ssh session and see if I can get both SSH sessions to talk internally?
+Maybe change the mapping of the docker port to the host machine?
+setting port to '8000' in usercide.py results in timeout rather than failure
+docker run -it -p 443:443 gcr.io/tester-391021/myapp:latest <----- FIX

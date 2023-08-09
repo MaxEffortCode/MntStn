@@ -93,7 +93,25 @@ gcloud compute ssh --zone "us-west4-b" "instance-4" --project "tester-391021"\
 
 
 ///////
-try bring up a second ssh session and see if I can get both SSH sessions to talk internally?
-Maybe change the mapping of the docker port to the host machine?
-setting port to '8000' in usercide.py results in timeout rather than failure
+#How to deploy to google cloud:
+
+1. <local> sudo docker build -t myapp:<tag> .
+
+2. <local> docker push gcr.io/tester-391021/myapp:<tag>
+
+3. <gcloud> go to "Container Registry"
+
+4. <gcloud> click most recent image
+
+5. <gcloud> Click "Deploy" on the top nav button
+
+6. 
+
+
+///////
+
 docker run -it -p 443:443 gcr.io/tester-391021/myapp:latest <----- FIX
+
+## the reason this works is its the https gateway assigned to the container by gcloud
+///
+Need to update requirements to get the g-dang gzip package installed

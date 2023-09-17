@@ -58,7 +58,7 @@ def handle_client(conn, addr):
 
 
 if __name__ == '__main__':
-    print("Starting server...")
+    print("Starting application...")
     time.sleep(0.2)
     
     if len(sys.argv) > 1:
@@ -68,6 +68,7 @@ if __name__ == '__main__':
     else:
         HOST = input("Enter host IP: ")
         PORT = int(input("Enter port: "))
+        print(f"Starting server on {HOST}:{PORT}")
 
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -1,4 +1,0 @@
-"Decision" is where the deep analyzation of the mata-data is done
-
-in esseince, Analyzation is at teh mercy of Decision, since decision dictates what
-meta-data is stored from the analyzation

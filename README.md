@@ -104,9 +104,9 @@ gcloud compute ssh --zone "us-west4-b" "instance-4" --project "tester-391021"\
 4. <gcloud> click most recent image
 
 5. <gcloud> Click "Deploy" on the top nav button
-
+https://cloud.google.com/kubernetes-engine/docs/tutorials/hello-app#cloud-shell_1 <---- Try this?
 6. 
-
+?maybe make sure theere is disc space?
 
 ///////
 

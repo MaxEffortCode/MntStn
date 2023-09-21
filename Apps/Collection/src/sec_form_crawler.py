@@ -3,7 +3,7 @@ import time
 import os
 import sys
 from Apps.Collection.src.api.sec_api import SecAPI
-from Apps.Collection.src.helper import helper
+from Apps.Collection.src.api.helper import helper
 from Settings.setup_logger import logging
 
 logger = logging.getLogger(__name__)

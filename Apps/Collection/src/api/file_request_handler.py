@@ -8,8 +8,7 @@ from polyfuzz import PolyFuzz
 
 from Apps.Collection.src.api.sec_api import SecAPI
 from Settings.setup_logger import logging
-from Apps.Collection.src.helper import helper
-from Apps.Collection.src.organizers.master_index_parser import master_index_parser
+from Apps.Collection.src.api.helper import Helper
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +44,7 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_13f_hr_filing_for_company_api(
             company_info_tuple[4])
         
-        file_path = helper().process_13f_hr(filing_response, company_info_tuple)
+        file_path = Helper().process_13f_hr(filing_response, company_info_tuple)
         print(f"\n****File path is {file_path}****\n")
         return file_path
 
@@ -55,15 +54,15 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_13f_hr_filing_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        file_path = helper().process_13f_hr(filing_response, company_info_tuple)
-        #helper().process_13f_hr(filing_response, company_info_tuple)
+        file_path = Helper().process_13f_hr(filing_response, company_info_tuple)
+        #Helper().process_13f_hr(filing_response, company_info_tuple)
     elif(company_info_tuple[1] == "10-K"):
         logger.info(
             f"Processing 10-K for : {company_info_tuple[0]}\n")
         filing_response = sec_api.get_index_json_filing_response_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        helper.process_10k(
+        Helper.process_10k(
             filing_response, sec_api, company_info_tuple)
     elif(company_info_tuple[1] == "10-K/A"):
         logger.info(
@@ -71,7 +70,7 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_index_json_filing_response_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        helper.process_10k(
+        Helper.process_10k(
             filing_response, sec_api, company_info_tuple)
     elif(company_info_tuple[1] == "10-Q"):
         logger.info(
@@ -79,7 +78,7 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_index_json_filing_response_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        helper.process_10q(
+        Helper.process_10q(
             filing_response, sec_api, company_info_tuple)
     elif(company_info_tuple[1] == "10-Q/A"):
         logger.info(
@@ -87,7 +86,7 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_index_json_filing_response_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        helper.process_10q(
+        Helper.process_10q(
             filing_response, sec_api, company_info_tuple)
     else:
         logger.info(
@@ -95,7 +94,7 @@ def file_processor(company_info_tuple, cik, fileRequestHandler):
         filing_response = sec_api.get_index_json_filing_response_for_company_api(
             company_info_tuple[4])
         #time.sleep(1/10)
-        helper.process_untracked(
+        Helper.process_untracked(
             filing_response, sec_api, company_info_tuple)
 
 
@@ -113,7 +112,7 @@ class EdgarIndexFileHandler:
 
         try:
             response = sec_api.getMasterEdgarIndexFileByQtrAndYrApi(fileReqHandler.get_quarter(), fileReqHandler.get_year())
-            edgar_index_file_path = helper.downloadEdgarIndexFileAndGetPath(
+            edgar_index_file_path = Helper.downloadEdgarIndexFileAndGetPath(
                 response, fileReqHandler.get_quarter(), fileReqHandler.get_year())
             
             index = {}
@@ -242,7 +241,7 @@ class FileReqHandler:
         file_paths = []
         try: 
             for line in lines:
-                company_info_tuple = helper.get_company_info_tuple(line, self.quarter, self.year)
+                company_info_tuple = Helper.get_company_info_tuple(line, self.quarter, self.year)
 
                 file = file_processor(company_info_tuple, cik, self)
                 print(f"\n****file is {file}****\n")
